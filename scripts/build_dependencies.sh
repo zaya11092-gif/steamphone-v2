@@ -869,7 +869,8 @@ build_mesa_host () {
     pushd "$BUILD_DIR/mesa.git"
 
     HOST_PATH="$(brew --prefix llvm)/bin:$CLEAN_PATH"
-    env -i PATH="$HOST_PATH" meson host_build --prefix="$PREFIX/host" --buildtype=release \
+    HOST_SDKROOT="$(/usr/bin/xcrun --show-sdk-path 2>/dev/null || true)"
+    env -i PATH="$HOST_PATH" SDKROOT="$HOST_SDKROOT" meson host_build --prefix="$PREFIX/host" --buildtype=release \
         -Dllvm=enabled -Dstrip=true -Dopengl=false -Dgallium-drivers= -Dvulkan-drivers=kosmickrisp -Dplatforms=macos -Dmesa-clc=enabled -Dinstall-mesa-clc=true -Dprecomp-compiler=enabled -Dinstall-precomp-compiler=true
     env -i PATH="$HOST_PATH" meson compile -C host_build -j $NCPU
     env -i PATH="$HOST_PATH" meson install -C host_build

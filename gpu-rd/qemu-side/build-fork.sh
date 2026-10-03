@@ -45,20 +45,21 @@ echo "==> Configuring QEMU (native, aarch64-softmmu only, minimal)"
 mkdir -p build-spike && cd build-spike
 ../configure --target-list=aarch64-softmmu 2>&1 | tee ../configure-spike.log
 
-echo "==> Gate check: is virtio-gpu-rutabaga selected?"
+echo "==> Building (aarch64-softmmu)"
+make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 4)" 2>&1 | tail -15
+
+echo "==> Gate check: did virtio-gpu-rutabaga compile and link?"
 GATE=unknown
-if grep -q "CONFIG_VIRTIO_GPU_RUTABAGA=y\|virtio-gpu-rutabaga" config-all-devices.mak 2>/dev/null \
-   || grep -q "virtio-gpu-rutabaga" config-host.mak 2>/dev/null; then
-    echo "GATE PASS: virtio-gpu-rutabaga selected by configure"
+RUT_OBJS=$(find . -name 'hw_display_virtio-gpu-rutabaga*.c.o' | head -2)
+RUT_SYM=$(nm libcommon.a 2>/dev/null | grep -c "virtio_gpu_rutabaga" || true)
+if [ -n "$RUT_OBJS" ] && [ "${RUT_SYM:-0}" -gt 0 ]; then
+    echo "GATE PASS: virtio-gpu-rutabaga device compiled into libcommon.a ($RUT_SYM symbols)"
     GATE=pass
 else
-    echo "GATE DATA: not selected — dependency detection failed?"
+    echo "GATE DATA: rutabaga objects absent (objs='$RUT_OBJS' syms=$RUT_SYM)"
     grep -i "rutabaga" ../configure-spike.log || echo "(no rutabaga mention in configure log)"
     GATE=fail
 fi
-
-echo "==> Building (aarch64-softmmu)"
-make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 4)" 2>&1 | tail -15
 
 echo "==> Resulting modules mentioning rutabaga/gfxstream:"
 find . -name '*rutabaga*' -o -name '*gfxstream*' | head -10

@@ -66,7 +66,6 @@ jobs:
       - name: Build Sysroot (if uncached)
         if: steps.cache-sysroot.outputs.cache-hit != 'true'
         run: |
-          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
           echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
