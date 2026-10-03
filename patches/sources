@@ -5,8 +5,8 @@ PKG_CONFIG_SRC="https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar
 
 # Source files for qemu
 FFI_SRC="https://github.com/libffi/libffi/releases/download/v3.5.0/libffi-3.5.0.tar.gz"
-ICONV_SRC="http://ftp.gnu.org/gnu/libiconv/libiconv-1.16.tar.gz"
-GETTEXT_SRC="http://ftp.gnu.org/gnu/gettext/gettext-0.22.5.tar.gz"
+ICONV_SRC="https://ftp.gnu.org/gnu/libiconv/libiconv-1.16.tar.gz"
+GETTEXT_SRC="https://ftp.gnu.org/gnu/gettext/gettext-0.22.5.tar.gz"
 PNG_SRC="https://ftp.osuosl.org/pub/blfs/conglomeration/libpng/libpng-1.6.48.tar.xz"
 JPEG_TURBO_SRC="https://ftp.osuosl.org/pub/blfs/conglomeration/libjpeg-turbo/libjpeg-turbo-1.5.3.tar.gz"
 GLIB_SRC="https://download.gnome.org/sources/glib/2.83/glib-2.83.0.tar.xz"
@@ -30,7 +30,7 @@ JSON_GLIB_SRC="https://download.gnome.org/sources/json-glib/1.10/json-glib-1.10.
 GST_SRC="https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-1.19.1.tar.xz"
 GST_BASE_SRC="https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.19.1.tar.xz"
 GST_GOOD_SRC="https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.19.1.tar.xz"
-XML2_SRC="http://xmlsoft.org/sources/libxml2-2.9.12.tar.gz"
+XML2_SRC="https://xmlsoft.org/sources/libxml2-2.9.12.tar.gz"
 SOUP_SRC="https://download.gnome.org/sources/libsoup/3.6/libsoup-3.6.0.tar.xz"
 PHODAV_SRC="https://download.gnome.org/sources/phodav/3.0/phodav-3.0.tar.xz"
 SPICE_CLIENT_SRC="https://www.spice-space.org/download/gtk/spice-gtk-0.42.tar.xz"

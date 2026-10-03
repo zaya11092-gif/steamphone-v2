@@ -56,7 +56,7 @@ jobs:
         if: steps.cache-sysroot.outputs.cache-matched-key == '' || github.event.inputs.rebuild_sysroot == 'true'
         run: |
           brew uninstall cmake || true
-          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake
+          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools
           brew install llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
           rm -f /usr/local/lib/pkgconfig/*.pc
