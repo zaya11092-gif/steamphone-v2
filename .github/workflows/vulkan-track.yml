@@ -18,7 +18,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
     env:
-      MOLTENVK_REF: ${{ github.event.inputs.moltenvk_ref || '1.2.11' }}
+      MOLTENVK_REF: ${{ github.event.inputs.moltenvk_ref || 'v1.4.2' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -107,6 +107,10 @@ jobs:
       - name: Fetch gfxstream
         run: |
           git clone --depth 1 https://github.com/google/gfxstream gpu-rd/gfxstream-host/src
+      - name: Patch macOS-only includes for iOS (libproc.h missing from SDK)
+        run: |
+          chmod +x gpu-rd/gfxstream-host/patch-ios.sh
+          gpu-rd/gfxstream-host/patch-ios.sh gpu-rd/gfxstream-host/src
       - name: Configure (${{ matrix.target.name }})
         run: |
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \

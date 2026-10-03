@@ -8,7 +8,7 @@
 #         gpu-rd/moltenvk/module/{vulkan,module.modulemap}
 set -euo pipefail
 
-MOLTENVK_REF="${1:-${MOLTENVK_REF:-1.2.11}}"   # override if the tag moved
+MOLTENVK_REF="${1:-${MOLTENVK_REF:-v1.4.2}}"   # override if the tag moved
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="$SCRIPT_DIR/build"
 SRC="$OUT/src"
@@ -25,8 +25,8 @@ fi
 
 cd "$SRC"
 
-echo "==> Fetching dependencies"
-./fetchDependencies --ios --no-fetch-vulkan-spec
+echo "==> Fetching dependencies (flag set varies across MoltenVK revisions)"
+./fetchDependencies --ios || ./fetchDependencies ||     { echo "fetchDependencies failed"; exit 1; }
 
 echo "==> Building static iOS framework (device)"
 # MoltenVK's Makefile: 'make ios' builds the Static iOS framework into
