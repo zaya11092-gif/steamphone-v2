@@ -66,6 +66,7 @@ jobs:
       - name: Build Sysroot (if uncached)
         if: steps.cache-sysroot.outputs.cache-hit != 'true'
         run: |
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
           echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
@@ -110,7 +111,11 @@ jobs:
       - name: Patch macOS-only includes for iOS (libproc.h missing from SDK)
         run: |
           chmod +x gpu-rd/gfxstream-host/patch-ios.sh
-          gpu-rd/gfxstream-host/patch-ios.sh gpu-rd/gfxstream-host/src
+          if [[ "${{ matrix.target.name }}" == ios* ]]; then
+            gpu-rd/gfxstream-host/patch-ios.sh gpu-rd/gfxstream-host/src ios
+          else
+            gpu-rd/gfxstream-host/patch-ios.sh gpu-rd/gfxstream-host/src
+          fi
       - name: Configure (${{ matrix.target.name }})
         run: |
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \

@@ -8,7 +8,8 @@
 set -euo pipefail
 
 SRC="${1:-gpu-rd/gfxstream-host/src}"
-[ -d "$SRC" ] || { echo "usage: $0 <gfxstream checkout dir>"; exit 1; }
+APPLY_STUBS="${2:-}"
+[ -d "$SRC" ] || { echo "usage: $0 <gfxstream checkout dir> [ios]"; exit 1; }
 
 python3 - "$SRC" <<'PYEOF'
 import sys
@@ -35,7 +36,12 @@ PYEOF
 
 # system-native-mac.mm: IOKit/AppKit (disk enums, dock icon, App Nap) do not
 # exist on iOS. Replace the file's body with iOS stubs keeping the exact
-# signatures the rest of gfxstream calls.
+# signatures the rest of gfxstream calls. Only on iOS legs: the macOS
+# control build needs the real implementation.
+if [ "$APPLY_STUBS" != "ios" ]; then
+    echo 'macOS leg: keeping real system-native-mac.mm'
+    exit 0
+fi
 python3 - "$SRC" <<'PYSTUB'
 import sys
 from pathlib import Path

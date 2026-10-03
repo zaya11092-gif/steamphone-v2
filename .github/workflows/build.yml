@@ -40,6 +40,8 @@ jobs:
         shell: bash
         run: |
           [[ "$(xcode-select -p)" == "${{ env.BUILD_XCODE_PATH }}"* ]] || sudo xcode-select -s "${{ env.BUILD_XCODE_PATH }}"
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+          echo "DEVELOPER_DIR=$(xcode-select -p)" >> $GITHUB_ENV
       - name: Check Cache
         id: cache-sysroot
         uses: actions/cache/restore@v4
@@ -107,6 +109,8 @@ jobs:
         shell: bash
         run: |
           [[ "$(xcode-select -p)" == "${{ env.BUILD_XCODE_PATH }}"* ]] || sudo xcode-select -s "${{ env.BUILD_XCODE_PATH }}"
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+          echo "DEVELOPER_DIR=$(xcode-select -p)" >> $GITHUB_ENV
       - name: Build
         run: |
           ./scripts/build_utm.sh -k iphoneos -s ${{ matrix.configuration.scheme }} -a arm64 -o UTM

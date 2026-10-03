@@ -32,7 +32,7 @@ fi
 
 # meson-native project (vendored rust crates via subprojects wraps; needs
 # meson >= 1.3 + a rust toolchain on PATH, no cargo manifest resolution).
-command -v meson >/dev/null || pip3 install meson
+command -v meson >/dev/null || { brew install meson 2>/dev/null || pip3 install --break-system-packages meson; }
 command -v rustc >/dev/null || { echo "rustc required on PATH"; exit 1; }
 
 echo "==> meson setup (ffi enabled, no gpu backends yet)"
