@@ -22,13 +22,11 @@ on:
 
 env:
   BUILD_XCODE_PATH: ${{ vars.HOST_XCODE_PATH || '/Applications/Xcode.app' }}
-  RUNNER_IMAGE: macos-15
-  SEGMENT_DOWNLOAD_TIMEOUT_MINS: 60
 
 jobs:
   build-sysroot:
     name: Build Sysroot (${{ matrix.platform }}-${{ matrix.arch }})
-    runs-on: ${{ env.RUNNER_IMAGE }}
+    runs-on: macos-15
     strategy:
       matrix:
         arch: [arm64]
@@ -86,7 +84,7 @@ jobs:
 
   build-app:
     name: Build App (${{ matrix.configuration.scheme }})
-    runs-on: ${{ env.RUNNER_IMAGE }}
+    runs-on: macos-15
     needs: build-sysroot
     strategy:
       matrix:
@@ -121,7 +119,7 @@ jobs:
 
   package-ios:
     name: Package IPA (${{ matrix.configuration.name }})
-    runs-on: ${{ env.RUNNER_IMAGE }}
+    runs-on: macos-15
     needs: build-app
     strategy:
       matrix:
