@@ -57,23 +57,23 @@ enum DroidDeckHardware {
     }
 }
 
-/// Build-time configuration knobs for the DroidDeckOS guest image.
+/// Build-time configuration knobs for the SteamPhoneOS guest image.
 enum DroidDeckBuildConfig {
     /// Name of the VM as it appears inside the UTM registry.
-    static let vmName = "DroidDeckOS"
+    static let vmName = "SteamPhoneOS"
 
     /// Version of the guest image this build of the app expects.
     /// Bump when the QEMU arguments or image layout change incompatibly.
-    static let imageVersion = "0.1.0"
+    static let imageVersion = "0.2.0"
 
     /// File name used for the downloaded (uncompressed) disk image.
-    static let imageFileName = "DroidDeckOS-\(imageVersion).qcow2"
+    static let imageFileName = "SteamPhoneOS-\(imageVersion).qcow2"
 
     /// Where the guest image is downloaded from. Points at this project's
     /// GitHub release; overridable for testing via UserDefaults key
     /// "DroidDeckImageURL" (e.g. pointing at a CI artifact).
     static var imageDownloadURL: URL {
-        let fallback = "https://github.com/droiddeck-ios/droiddeck-ios/releases/download/v\(imageVersion)/DroidDeckOS-\(imageVersion)-arm64.qcow2"
+        let fallback = "https://github.com/steamphone-v2/steamphone-v2/releases/download/v\(imageVersion)/SteamPhoneOS-\(imageVersion)-arm64.qcow2"
         if let override = UserDefaults.standard.string(forKey: "DroidDeckImageURL"), let url = URL(string: override) {
             return url
         }

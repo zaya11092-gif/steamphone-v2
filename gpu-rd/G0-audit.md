@@ -89,3 +89,31 @@ Even a fully successful track leaves **TCG CPU emulation** as the bottleneck
 for modern games: the GPU would no longer be software-rendered, but game
 logic still runs on an emulated CPU at a fraction of native speed. Heavy
 titles will remain streaming-only regardless.
+
+---
+
+## G1 status: DELIVERED (steamphone-v2)
+
+The G1 harness ships in the app as **SteamPhone GPU Bridge (SPGB)**:
+
+- `Platform/DroidDeck/GPUBridge/SPGBProtocol.h` — frozen wire protocol v1
+  (the single source of truth; mirrored in Swift and in the QEMU scaffold).
+- `Platform/DroidDeck/GPUBridge/SPGBHostRenderer.swift` — the Metal side of
+  the translator: resources→MTLTextures, TRANSFER_2D→texture replaces,
+  CLEAR→render-pass clear, DRAW_QUAD→textured triangle-strip,
+  PRESENT→composite into the CAMetalLayer drawable. Per-format pipeline
+  caching; no IPC (QEMU is in-process on iOS).
+- `Platform/DroidDeck/GPUBridge/SPGBGuestSimulator.swift` — byte-exact
+  simulated guest command stream (what Mesa's SPGB winsys will emit in G2).
+- `Platform/DroidDeck/GPUBridge/GPUBridgeDiagnosticsView.swift` — on-device
+  harness (launcher menu → "GPU Bridge diagnostics (G1)"): live FPS, upload
+  volume, command count, and the gate checklist including the sustained
+  ≥30 FPS bar.
+- `gpu-rd/qemu-side/` — G2 integration scaffold for utmapp/QEMU's
+  virtio-gpu (five exact integration points documented).
+
+G1 passes when the diagnostics screen shows every checklist item green on
+device. What G1 deliberately does NOT prove: end-to-end performance through
+virtio-gpu + guest Mesa (that is G2/G3), and anything about Vulkan-level
+workloads — SPGB v1 is a 2D compositing protocol (the layer a Steam UI
+needs first); 3D command streaming is a G2+ protocol extension.

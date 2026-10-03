@@ -1,107 +1,90 @@
-# DroidDeck for iOS
+# SteamPhone (steamphone-v2)
 
-An unofficial iOS port of the [DroidDeck](https://github.com/Droid-Deck/DroidDeck)
-concept: a **SteamOS-style gaming environment on your iPhone**, built entirely
-on open-source components and distributed as a sideloadable `.ipa`.
+SteamOS-style gaming on iPhone — **v2 of the DroidDeck iOS port**, adding the
+**SteamPhone GPU Bridge (SPGB)**: a real QEMU→Metal translation layer for the
+local virtual machine, with an on-device harness proving the Metal side
+executes the protocol.
 
-> **Not affiliated** with Valve (Steam/SteamOS are their trademarks) or the
-> Droid-Deck organization. GPL-3.0 licensed; see *About & Licenses* below.
+> Unofficial, GPL-3.0, not affiliated with Valve or Droid-Deck. v1 lineage:
+> this repo carries the full v1 history (custom launcher, guest image
+> builder, Moonlight streaming skeleton, CI) and rebrands the user-facing app
+> to **SteamPhone** (`com.steamphone.*`), version 0.2.0.
 
-## How it works — and what to honestly expect
+## What v2 adds: the QEMU→Metal translator
 
-The Android original runs an ARM64 Linux runtime through **proot** with
-**FEX-EMU** and host GPU thunks. iOS forbids that architecture outright (no
-`fork()`, no `ptrace`, no driver loading), so this port runs the same recipe
-inside a **fully emulated ARM64 Linux virtual machine** (QEMU, via UTM's
-engine). Inside the VM, Steam's Big Picture mode runs the Deck-style UI.
+iOS apps may only touch the GPU through Metal. v1's local VM was
+software-rendered for that reason. v2 introduces the translation pipeline
+with explicit gates (full audit in `gpu-rd/G0-audit.md`):
+
+```
+guest Mesa driver ──virtqueue──▶ virtio-gpu (QEMU, in-process)
+                                     │  G2: spgb-backend.c packs SPGB bytes
+                                     ▼
+                        spgb_host_execute(stream)
+                                     │
+                                     ▼
+              SPGBHostRenderer — Metal encoders (G1: shipped, testable)
+```
+
+Because UTM's engine runs QEMU **inside the app process**, the boundary is a
+plain C call — no IPC, no shared memory, no kernel interfaces.
+
+| Piece | Status | Where |
+| --- | --- | --- |
+| Wire protocol v1 (frozen, little-endian, 10 opcodes) | shipped | `Platform/DroidDeck/GPUBridge/SPGBProtocol.h` |
+| Metal translator core (resources/uploads/clear/quads/present) | shipped | `SPGBHostRenderer.swift` |
+| Guest-side byte-exact command generator | shipped | `SPGBGuestSimulator.swift` |
+| On-device harness with gate checklist + FPS | shipped | `GPUBridgeDiagnosticsView.swift` (launcher menu → *GPU Bridge diagnostics (G1)*) |
+| QEMU virtio-gpu backend scaffold | G2 scaffold | `gpu-rd/qemu-side/spgb-backend.c` (+ integration map) |
+| Guest Mesa winsys speaking SPGB | G2 work item | — |
+
+**Honest scope:** SPGB v1 is a 2D compositing protocol — the layer Steam's UI
+needs first. It is not yet GPU acceleration for games: that requires G2
+(QEMU wiring + guest Mesa driver + 3D protocol extensions) and passing the
+G3 performance bar. Until then, local gaming stays software-rendered and
+**streaming remains the full-speed path** (M4, moonlight-common-c vendored).
+
+## Everything inherited from v1 (still here)
+
+- Custom Deck-style launcher (`Platform/DroidDeck/`) with resumable guest
+  image download, VM resource tuning, About/licenses.
+- SteamPhoneOS guest image builder (`image/`): Ubuntu 24.04 arm64 + FEX-EMU
+  + Steam Big Picture under cage + PipeWire, built in CI.
+- CI: `SteamPhone-JIT.ipa` + `SteamPhone-SE.ipa` artifacts on every push;
+  guest image on tags.
+- Performance expectations, sideloading guide, and attribution — unchanged
+  from v1 (see sections below).
+
+## What to honestly expect
 
 | Mode | Experience |
 | --- | --- |
-| **Stream from your PC** | Full speed. Modern Steam games at 60 fps via GameStream (Sunshine on your PC). *The* way to actually play demanding games on iPhone (milestone M4). |
-| **Local (JIT edition)** | Usable-slow Steam UI; lightweight/2D/older games are marginal. One-time "Enable JIT" toggle in SideStore/AltStore at launch. |
-| **Local (SE edition)** | Interpreter-based emulation; no extra steps to install, noticeably slower. |
+| **Stream from your PC** | Full speed, 60 fps, modern games (M4). |
+| **Local (JIT edition)** | Usable-slow Steam UI; lightweight games marginal. |
+| **Local (SE edition)** | Slower fallback, zero extra install steps. |
 
-There is **no GPU acceleration** for the local VM today — no QEMU GPU backend
-speaks Metal (the only GPU API iOS apps get). Local 3D is software-rendered.
-The `gpu-rd/` directory tracks the paravirtual-GPU research (gfxstream/Venus
-over MoltenVK) with explicit go/no-go gates.
+Target devices: 8 GB-RAM iPhones (15 Pro+); 6 GB works with reduced memory.
 
-Target devices: iPhones with **8 GB RAM** (15 Pro and newer); 6 GB devices
-work with a reduced memory allocation.
+## Sideload
 
-## Getting the app
+Download `SteamPhone-JIT.ipa` / `SteamPhone-SE.ipa` from Releases (CI
+artifacts until then); sideload with SideStore/AltStore/Sideloadly. Free
+Apple IDs: 3-app limit, weekly refresh (SideStore refreshes on-device). JIT
+edition: use SideStore/AltStore *Enable JIT* when launching — v2's
+equivalent of Android DroidDeck's "restrict child processes" tweak.
 
-Download from [Releases] once CI has produced them:
+## Building
 
-- `DroidDeck-JIT.ipa` — primary experience
-- `DroidDeck-SE.ipa` — zero-extra-steps fallback
-- `DroidDeckOS-<version>-arm64.qcow2` — guest disk image (the app can also
-  download this on first launch)
+Same as v1 — GitHub Actions on push produces the IPAs; local builds follow
+UTM's `Documentation/iOSDevelopment.md` with
+`./scripts/build_utm.sh -k iphoneos -s iOS` (and `-s iOS-SE`), packaged via
+`./scripts/package.sh ipa`. The GPU Bridge needs no build changes: it is
+registered in the Xcode project via `scripts/inject_droiddeck.py`.
 
-Sideload with [SideStore](https://sidestore.io), [AltStore](https://altstore.io)
-or [Sideloadly](https://sideloadly.io). Free Apple IDs: 3-app limit, refresh
-weekly (SideStore does it on-device). For the JIT edition, use SideStore's/
-AltStore's *Enable JIT* after each install/launch (this port's equivalent of
-the Android original's "disable child process restrictions" tweak).
+## License & attribution
 
-## Building from source
-
-Requires a Mac with Xcode for local builds; **GitHub Actions does everything
-on push** (this mirrors how DroidDeck itself releases):
-
-```bash
-git clone <this repo> && cd droiddeck-ios
-# CI: .github/workflows/build.yml   -> IPAs as artifacts
-#     .github/workflows/build-image.yml -> DroidDeckOS qcow2
-```
-
-Manual local build (macOS, see `Documentation/iOSDevelopment.md` from UTM):
-
-```bash
-./scripts/build_dependencies.sh -p ios -a arm64
-./scripts/build_dependencies.sh -p ios-tci -a arm64
-./scripts/build_utm.sh -k iphoneos -s iOS -o build        # JIT edition
-./scripts/build_utm.sh -k iphoneos -s iOS-SE -o build     # SE edition
-./scripts/package.sh ipa build/UTM.xcarchive .
-```
-
-The guest image builds on any Ubuntu host with Docker:
-`sudo ./image/build-image.sh 0.1.0` (see `image/README.md`).
-
-## Repository layout
-
-| Path | Contents |
-| --- | --- |
-| `Platform/DroidDeck/` | The custom launcher UI (SwiftUI) + streaming module |
-| everything UTM-shaped | Fork of [UTM](https://github.com/utmapp/UTM) v5.0.6 (engine, QEMU integration, renderer) |
-| `image/` | DroidDeckOS guest image build (Ubuntu arm64 + FEX + Steam + cage) |
-| `gpu-rd/` | GPU acceleration research track (G0–G3 gates) |
-| `scripts/` | UTM build scripts + `inject_droiddeck.py` (registers new Swift files in the Xcode project) |
-
-Adding a Swift file to the app: drop it under `Platform/DroidDeck/` and run
-`python3 scripts/inject_droiddeck.py`.
-
-## Roadmap
-
-- [x] **M1** — fork builds unsigned IPAs in CI (JIT + SE)
-- [ ] **M2** — DroidDeckOS image boots to a graphical session
-- [ ] **M3** — Steam Big Picture + audio + controllers, end-to-end on device
-- [ ] **M4** — Moonlight streaming mode (full-speed gaming)
-- [ ] **M5** — GPU acceleration research gates (gfxstream/Venus on MoltenVK)
-
-## About & Licenses
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the **GNU General Public License as published by the Free
-Software Foundation, version 3** (see `LICENSE`). It is a derivative work of:
-
-- **UTM** v5.0.6 — Apache-2.0 (`LICENSES/LICENSE-UTM.txt`)
-- **QEMU** — GPLv2, via [utmapp/QEMU](https://github.com/utmapp/QEMU)
-- **moonlight-common-c** — GPL-3.0, vendored under
-  `Platform/DroidDeck/Streaming/moonlight-common-c/`
-- **Droid-Deck/DroidDeck** (GPL-3.0) — the original Android project; this
-  port reuses its FEX runtime recipe and follows its release model
-
-Internal Xcode target/product names retain the UTM identity for fork
-stability; the user-visible app, bundle id (`com.droiddeck.*`) and display
-name are DroidDeck.
+GPL-3.0 (`LICENSE`). Derivative work of UTM v5.0.6 (Apache-2.0), QEMU
+(GPLv2, via utmapp/QEMU), moonlight-common-c (GPL-3.0), and the Android
+DroidDeck project (GPL-3.0). Internal target names retain UTM/DroidDeck
+identities for fork stability; user-facing names are SteamPhone /
+SteamPhoneOS / steamphone-v2.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# DroidDeckOS guest disk image builder.
+# SteamPhoneOS guest disk image builder.
 #
 # Runs on an ubuntu-latest GitHub Actions runner (or any Ubuntu host with
 # Docker). Produces a bootable ARM64 Linux disk image that Steam Big Picture
@@ -9,13 +9,13 @@
 # Usage: sudo ./build-image.sh [version]
 #
 # Layout produced:
-#   image/out/DroidDeckOS-<version>-arm64.qcow2
+#   image/out/SteamPhoneOS-<version>-arm64.qcow2
 #
 # This script is expected to be iterated on in CI; see image/README.md.
 
 set -euo pipefail
 
-VERSION="${1:-0.1.0}"
+VERSION="${1:-0.2.0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="$SCRIPT_DIR/out"
 WORK_DIR="$SCRIPT_DIR/work"
@@ -100,8 +100,8 @@ losetup -d "$LOOPDEV"
 trap - EXIT
 
 echo "==> Converting to qcow2"
-qemu-img convert -c -f raw -O qcow2 "$RAW_IMAGE" "$OUT_DIR/DroidDeckOS-$VERSION-arm64.qcow2"
+qemu-img convert -c -f raw -O qcow2 "$RAW_IMAGE" "$OUT_DIR/SteamPhoneOS-$VERSION-arm64.qcow2"
 rm -f "$RAW_IMAGE"
 
-echo "==> Done: $OUT_DIR/DroidDeckOS-$VERSION-arm64.qcow2"
+echo "==> Done: $OUT_DIR/SteamPhoneOS-$VERSION-arm64.qcow2"
 ls -lh "$OUT_DIR"

@@ -1,4 +1,4 @@
-name: Build DroidDeckOS Image
+name: Build SteamPhoneOS Image
 on:
   push:
     tags:
@@ -35,7 +35,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DroidDeckOS-image
+          name: SteamPhoneOS-image
           path: image/out/
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/')

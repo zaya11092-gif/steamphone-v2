@@ -31,6 +31,10 @@ FILES = [
     ("DroidDeckAboutView.swift", ""),
     ("Streaming/MoonlightDiscovery.swift", "Streaming"),
     ("Streaming/MoonlightSessionView.swift", "Streaming"),
+    ("GPUBridge/SPGBTypes.swift", "GPUBridge"),
+    ("GPUBridge/SPGBHostRenderer.swift", "GPUBridge"),
+    ("GPUBridge/SPGBGuestSimulator.swift", "GPUBridge"),
+    ("GPUBridge/GPUBridgeDiagnosticsView.swift", "GPUBridge"),
 ]
 
 
@@ -118,7 +122,6 @@ def main() -> None:
 
     platform_group = find_group_uuid(txt, "Platform")
     droiddeck_group = uuid_for("group:DroidDeck")
-    streaming_group = uuid_for("group:Streaming")
     sources_phases = {t: native_target_sources_phase(txt, t) for t in APP_TARGETS}
 
     changed = False
@@ -129,13 +132,11 @@ def main() -> None:
             txt, platform_group, f"\t\t\t\t{droiddeck_group} /* DroidDeck */,")
         changed = True
 
-    # 2. Group definitions.
+    # 2. Group definitions: root group once, then each subgroup independently
+    #    (so later additions create their own subgroup without touching the rest).
     if f"{droiddeck_group} /* DroidDeck */ = {{\n" not in txt:
         root_files = [p for p, sub in files if not sub]
-        stream_files = [p for p, sub in files if sub == "Streaming"]
         children = [f"\t\t\t\t{uuid_for('ref:' + p)} /* {Path(p).name} */," for p in root_files]
-        if stream_files:
-            children.append(f"\t\t\t\t{streaming_group} /* Streaming */,")
         block = (
             f"\n\t\t{droiddeck_group} /* DroidDeck */ = {{\n"
             "\t\t\tisa = PBXGroup;\n"
@@ -144,18 +145,28 @@ def main() -> None:
             "\t\t\tsourceTree = \"<group>\";\n"
             "\t\t};\n"
         )
-        if stream_files:
-            schildren = [f"\t\t\t\t{uuid_for('ref:' + p)} /* {Path(p).name} */," for p in stream_files]
-            block += (
-                f"\t\t{streaming_group} /* Streaming */ = {{\n"
+        txt = insert_after(txt, "/* Begin PBXGroup section */", block)
+        changed = True
+
+    for sub in sorted({sub for _, sub in files if sub}):
+        sub_group = uuid_for("group:" + sub)
+        if f"{sub_group} /* {sub} */ = {{\n" not in txt:
+            sub_files = [p for p, s in files if s == sub]
+            schildren = [f"\t\t\t\t{uuid_for('ref:' + p)} /* {Path(p).name} */," for p in sub_files]
+            block = (
+                f"\n\t\t{sub_group} /* {sub} */ = {{\n"
                 "\t\t\tisa = PBXGroup;\n"
                 "\t\t\tchildren = (\n" + "\n".join(schildren) + "\n\t\t\t);\n"
-                "\t\t\tpath = Streaming;\n"
+                f"\t\t\tpath = {sub};\n"
                 "\t\t\tsourceTree = \"<group>\";\n"
                 "\t\t};\n"
             )
-        txt = insert_after(txt, "/* Begin PBXGroup section */", block)
-        changed = True
+            txt = insert_after(txt, "/* Begin PBXGroup section */", block)
+            # also list the subgroup as a child of the root group
+            if f"{sub_group} /* {sub} */," not in txt:
+                txt = insert_into_group_children(
+                    txt, droiddeck_group, f"\t\t\t\t{sub_group} /* {sub} */,")
+            changed = True
 
     # 3. File references + build files + sources phase entries.
     for rel_path, _ in files:

@@ -18,11 +18,11 @@
 
 import SwiftUI
 
-/// Resource tuning and image management for the DroidDeckOS VM.
+/// Resource tuning and image management for the SteamPhoneOS VM.
 struct DroidDeckSettingsView: View {
     @EnvironmentObject private var data: UTMData
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var manager: DroidDeckOSManager
+    @ObservedObject var manager: SteamPhoneOSManager
     @State private var memoryMib: Int = DroidDeckHardware.recommendedMemoryMib
     @State private var cpuCount: Int = DroidDeckHardware.recommendedCpuCount
     @State private var saveError: String?
@@ -48,7 +48,7 @@ struct DroidDeckSettingsView: View {
                     Text("iOS reserves roughly 2 GB for itself; assigning more than recommended risks the VM being killed by the system.")
                 }
                 if let vm {
-                    Section("DroidDeckOS virtual machine") {
+                    Section("SteamPhoneOS virtual machine") {
                         Stepper(value: $memoryMib, in: 1024...6144, step: 512) {
                             HStack {
                                 Text("Memory")
@@ -69,7 +69,7 @@ struct DroidDeckSettingsView: View {
                     }
                 } else {
                     Section {
-                        Text("No DroidDeckOS VM installed yet.")
+                        Text("No SteamPhoneOS VM installed yet.")
                             .foregroundColor(.secondary)
                     }
                 }

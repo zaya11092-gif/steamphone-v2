@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>DroidDeck</string>
+	<string>SteamPhone</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -17,7 +17,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.droiddeck.utm</string>
+				<string>com.steamphone.utm</string>
 			</array>
 			<key>LSTypeIsPackage</key>
 			<true/>
@@ -41,7 +41,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.droiddeck.UTM</string>
+			<string>com.steamphone.UTM</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>UTM</string>
@@ -118,7 +118,7 @@
 			<key>UTTypeIconFiles</key>
 			<array/>
 			<key>UTTypeIdentifier</key>
-			<string>com.droiddeck.utm</string>
+			<string>com.steamphone.utm</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -148,6 +148,6 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>AppGroupIdentifier</key>
-	<string>group.$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM</string>
+	<string>group.$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM</string>
 </dict>
 </plist>

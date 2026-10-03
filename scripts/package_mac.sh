@@ -35,7 +35,7 @@ RENDERER_ENTITLEMENTS="/tmp/renderer.$$.entitlements"
 HELPER_ENTITLEMENTS="/tmp/helper.$$.entitlements"
 CLI_ENTITLEMENTS="/tmp/cli.$$.entitlements"
 INPUT_COPY="/tmp/UTM.$$.xcarchive"
-PRODUCT_BUNDLE_PREFIX="com.droiddeck"
+PRODUCT_BUNDLE_PREFIX="com.steamphone"
 
 cat >"$OPTIONS" <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
@@ -92,8 +92,8 @@ else
 fi
 
 # the scripting target is a dictionary KEY, which Xcode expands only when it signs; codesign takes the file as is,
-# so utmctl would be allowed to script an app called "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM" and no other
-sed -i '' "s/\$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck)/${PRODUCT_BUNDLE_PREFIX}/g" "$CLI_ENTITLEMENTS"
+# so utmctl would be allowed to script an app called "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM" and no other
+sed -i '' "s/\$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone)/${PRODUCT_BUNDLE_PREFIX}/g" "$CLI_ENTITLEMENTS"
 
 # ad-hoc sign with the right entitlements
 rm -rf "$INPUT_COPY"

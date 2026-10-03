@@ -15,7 +15,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.droiddeck.utm</string>
+				<string>com.steamphone.utm</string>
 			</array>
 			<key>LSTypeIsPackageLSTypeIsPackage</key>
 			<true/>
@@ -43,7 +43,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.droiddeck.UTM</string>
+			<string>com.steamphone.UTM</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>UTM</string>
@@ -71,7 +71,7 @@
 				<string>UTM</string>
 			</dict>
 			<key>UTTypeIdentifier</key>
-			<string>com.droiddeck.utm</string>
+			<string>com.steamphone.utm</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -82,9 +82,9 @@
 		</dict>
 	</array>
 	<key>AppGroupIdentifier</key>
-	<string>$(TeamIdentifierPrefix:default=invalid.)$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM</string>
+	<string>$(TeamIdentifierPrefix:default=invalid.)$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM</string>
 	<key>HelperIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMUHelper</string>
+	<string>$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMUHelper</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Permission is required for any virtual machine to record from the microphone.</string>
 	<key>NSAppleScriptEnabled</key>

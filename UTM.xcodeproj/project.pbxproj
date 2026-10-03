@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6939703F3170AAEC5CA1F042 /* GPUBridgeDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 554B692F3FF0687A6D9F1480 /* GPUBridgeDiagnosticsView.swift */; };
+		E27627BE20DE692E35AFEF9B /* GPUBridgeDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 554B692F3FF0687A6D9F1480 /* GPUBridgeDiagnosticsView.swift */; };
+		704CBBFACEF0067BEABE360B /* SPGBGuestSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 923BF642E934ACDC994AA90F /* SPGBGuestSimulator.swift */; };
+		79B9EA87E8774FBF469A55BB /* SPGBGuestSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 923BF642E934ACDC994AA90F /* SPGBGuestSimulator.swift */; };
+		79E181FA7F2E39C40F40E59D /* SPGBHostRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78C4CD0E43D1077CF5CADF73 /* SPGBHostRenderer.swift */; };
+		F84F39A791B5BA1C90857B0A /* SPGBHostRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78C4CD0E43D1077CF5CADF73 /* SPGBHostRenderer.swift */; };
+		C699423D5712F136C799741F /* SPGBTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DB247A7C852242954EC2E0 /* SPGBTypes.swift */; };
+		1484B1BDF1E5BBB32D4BCBC6 /* SPGBTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DB247A7C852242954EC2E0 /* SPGBTypes.swift */; };
 		EBEFE709CC5B3C2133B28F85 /* MoonlightSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462A2A4765201F8DBE171B6E /* MoonlightSessionView.swift */; };
 		3C8D129A11D2A397EC19A821 /* MoonlightSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462A2A4765201F8DBE171B6E /* MoonlightSessionView.swift */; };
 		DE31D442975E4171FA15465A /* MoonlightDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F681DFB14F5531054A57536B /* MoonlightDiscovery.swift */; };
@@ -1773,6 +1781,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		554B692F3FF0687A6D9F1480 /* GPUBridgeDiagnosticsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GPUBridgeDiagnosticsView.swift; sourceTree = "<group>"; };
+		923BF642E934ACDC994AA90F /* SPGBGuestSimulator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPGBGuestSimulator.swift; sourceTree = "<group>"; };
+		78C4CD0E43D1077CF5CADF73 /* SPGBHostRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPGBHostRenderer.swift; sourceTree = "<group>"; };
+		53DB247A7C852242954EC2E0 /* SPGBTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPGBTypes.swift; sourceTree = "<group>"; };
 		462A2A4765201F8DBE171B6E /* MoonlightSessionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoonlightSessionView.swift; sourceTree = "<group>"; };
 		F681DFB14F5531054A57536B /* MoonlightDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoonlightDiscovery.swift; sourceTree = "<group>"; };
 		70FC6E6EFE7D1A451042DB23 /* DroidDeckAboutView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DroidDeckAboutView.swift; sourceTree = "<group>"; };
@@ -2713,9 +2725,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC11C0DCA3634BFFB043B377 /* GPUBridge */ = {
+			isa = PBXGroup;
+			children = (
+				53DB247A7C852242954EC2E0 /* SPGBTypes.swift */,
+				78C4CD0E43D1077CF5CADF73 /* SPGBHostRenderer.swift */,
+				923BF642E934ACDC994AA90F /* SPGBGuestSimulator.swift */,
+				554B692F3FF0687A6D9F1480 /* GPUBridgeDiagnosticsView.swift */,
+			);
+			path = GPUBridge;
+			sourceTree = "<group>";
+		};
+
 		46FC38AF4F02E1B192C3221B /* DroidDeck */ = {
 			isa = PBXGroup;
 			children = (
+				EC11C0DCA3634BFFB043B377 /* GPUBridge */,
 				EE00C62252269617A8D2AB34 /* DroidDeckHardware.swift */,
 				6C5641E5554FF3D531BD4CEF /* DroidDeckVMBuilder.swift */,
 				55B85FB93ACE0AB12F929F8E /* DroidDeckOSManager.swift */,
@@ -4057,6 +4082,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E27627BE20DE692E35AFEF9B /* GPUBridgeDiagnosticsView.swift in Sources */,
+				79B9EA87E8774FBF469A55BB /* SPGBGuestSimulator.swift in Sources */,
+				F84F39A791B5BA1C90857B0A /* SPGBHostRenderer.swift in Sources */,
+				1484B1BDF1E5BBB32D4BCBC6 /* SPGBTypes.swift in Sources */,
 				3C8D129A11D2A397EC19A821 /* MoonlightSessionView.swift in Sources */,
 				32A3FF65DEED8B0A3D43BF21 /* MoonlightDiscovery.swift in Sources */,
 				24671A84C2AF46649FF53BB7 /* DroidDeckAboutView.swift in Sources */,
@@ -4483,6 +4512,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6939703F3170AAEC5CA1F042 /* GPUBridgeDiagnosticsView.swift in Sources */,
+				704CBBFACEF0067BEABE360B /* SPGBGuestSimulator.swift in Sources */,
+				79E181FA7F2E39C40F40E59D /* SPGBHostRenderer.swift in Sources */,
+				C699423D5712F136C799741F /* SPGBTypes.swift in Sources */,
 				EBEFE709CC5B3C2133B28F85 /* MoonlightSessionView.swift in Sources */,
 				DE31D442975E4171FA15465A /* MoonlightDiscovery.swift in Sources */,
 				84F26B8BDCD37C04D3C8B879 /* DroidDeckAboutView.swift in Sources */,
@@ -5078,7 +5111,7 @@
 					"$(inherited)",
 					"@executable_path/../../../../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMULauncher";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMULauncher";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_LAUNCHER:default=)";
 				SKIP_INSTALL = YES;
@@ -5099,7 +5132,7 @@
 					"$(inherited)",
 					"@executable_path/../../../../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMULauncher";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMULauncher";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_LAUNCHER:default=)";
 				SKIP_INSTALL = YES;
@@ -5142,7 +5175,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -5179,7 +5212,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -5218,7 +5251,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-SE";
+				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-SE";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -5255,7 +5288,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-SE";
+				UTM_HOST_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-SE";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -5270,7 +5303,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/utmctl/Info.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).utmctl";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).utmctl";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = macosx;
@@ -5290,7 +5323,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/utmctl/Info.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).utmctl";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).utmctl";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = macosx;
@@ -5323,7 +5356,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				PRODUCT_NAME = "$(PROJECT_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_IOS:default=)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
@@ -5362,7 +5395,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				PRODUCT_NAME = "$(PROJECT_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_IOS:default=)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
@@ -5400,7 +5433,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				PRODUCT_NAME = "$(PROJECT_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_MAC:default=)";
 				SUPPORTED_PLATFORMS = macosx;
@@ -5435,7 +5468,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM";
 				PRODUCT_NAME = "$(PROJECT_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_MAC:default=)";
 				SUPPORTED_PLATFORMS = macosx;
@@ -5637,7 +5670,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				OTHER_LDFLAGS = "-Wl,-framework,IOKit";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).JailbreakInterposer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).JailbreakInterposer";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -5663,7 +5696,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				OTHER_LDFLAGS = "-Wl,-framework,IOKit";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).JailbreakInterposer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).JailbreakInterposer";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -5682,7 +5715,7 @@
 					"$(inherited)",
 					"@executable_path/../../../../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMURenderServer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMURenderServer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = macosx;
@@ -5702,7 +5735,7 @@
 					"$(inherited)",
 					"@executable_path/../../../../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMURenderServer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMURenderServer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = macosx;
@@ -5734,7 +5767,7 @@
 					"@executable_path/Frameworks",
 				);
 				PLATFORM_SUFFIX = "-TCI";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-SE";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-SE";
 				PRODUCT_MODULE_NAME = UTM;
 				PRODUCT_NAME = "UTM SE";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_SE:default=)";
@@ -5774,7 +5807,7 @@
 					"@executable_path/Frameworks",
 				);
 				PLATFORM_SUFFIX = "-TCI";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-SE";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-SE";
 				PRODUCT_MODULE_NAME = UTM;
 				PRODUCT_NAME = "UTM SE";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_SE:default=)";
@@ -5802,7 +5835,7 @@
 					"$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)_$(_BOOL_$(SKIP_INSTALL)))",
 					"@executable_path/../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMUHelper";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMUHelper";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_HELPER:default=)";
 				SKIP_INSTALL = YES;
@@ -5823,7 +5856,7 @@
 					"$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)_$(_BOOL_$(SKIP_INSTALL)))",
 					"@executable_path/../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).QEMUHelper";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).QEMUHelper";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_HELPER:default=)";
 				SKIP_INSTALL = YES;
@@ -5851,7 +5884,7 @@
 					"@executable_path/Frameworks",
 				);
 				PLATFORM_SUFFIX = "-TCI";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-Remote";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-Remote";
 				PRODUCT_MODULE_NAME = UTM;
 				PRODUCT_NAME = "UTM Remote";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_REMOTE:default=)";
@@ -5887,7 +5920,7 @@
 					"@executable_path/Frameworks",
 				);
 				PLATFORM_SUFFIX = "-TCI";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM-Remote";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM-Remote";
 				PRODUCT_MODULE_NAME = UTM;
 				PRODUCT_NAME = "UTM Remote";
 				PROVISIONING_PROFILE_SPECIFIER = "$(PROVISIONING_PROFILE_SPECIFIER_REMOTE:default=)";

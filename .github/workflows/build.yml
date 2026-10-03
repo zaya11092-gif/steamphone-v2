@@ -126,8 +126,8 @@ jobs:
     strategy:
       matrix:
         configuration:
-          - {scheme: "iOS", mode: "ipa", name: "DroidDeck-JIT.ipa", path: "UTM.ipa"}
-          - {scheme: "iOS-SE", mode: "ipa-se", name: "DroidDeck-SE.ipa", path: "UTM SE.ipa"}
+          - {scheme: "iOS", mode: "ipa", name: "SteamPhone-JIT.ipa", path: "UTM.ipa"}
+          - {scheme: "iOS-SE", mode: "ipa-se", name: "SteamPhone-SE.ipa", path: "UTM SE.ipa"}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

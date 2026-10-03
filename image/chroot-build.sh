@@ -1,6 +1,6 @@
 #!/bin/bash
 # Runs INSIDE the arm64 Ubuntu container (see build-image.sh).
-# Builds the DroidDeckOS userspace: mesa (software GL/Vulkan), FEX-EMU with
+# Builds the SteamPhoneOS userspace: mesa (software GL/Vulkan), FEX-EMU with
 # host thunks, the x86_64 Steam client, cage compositor, PipeWire audio, and
 # the autologin service that boots straight into Steam Big Picture.
 set -euo pipefail
@@ -65,7 +65,7 @@ echo "==> Steam wrapper (Big Picture under FEX)"
 mkdir -p /usr/local/bin
 cat > /usr/local/bin/steam <<'EOF'
 #!/bin/bash
-# DroidDeckOS steam wrapper: x86_64 Steam under FEX-EMU.
+# SteamPhoneOS steam wrapper: x86_64 Steam under FEX-EMU.
 export FEX_ENABLE_THUNKS=1
 # Steam wants a writable HOME with its bootstrap already present.
 export HOME=${HOME:-/home/droiddeck}
@@ -87,7 +87,7 @@ Type=simple
 EOF
 
 cat > /home/droiddeck/.profile <<'EOF'
-# DroidDeckOS session: start cage compositor running Steam Big Picture.
+# SteamPhoneOS session: start cage compositor running Steam Big Picture.
 if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DROIDDECK_SESSION" ]; then
     export DROIDDECK_SESSION=1
     export XDG_RUNTIME_DIR=/run/user/$(id -u)

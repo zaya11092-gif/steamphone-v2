@@ -8,9 +8,9 @@
 	<true/>
 	<key>com.apple.security.scripting-targets</key>
 	<dict>
-		<key>$(PRODUCT_BUNDLE_PREFIX:default=com.droiddeck).UTM</key>
+		<key>$(PRODUCT_BUNDLE_PREFIX:default=com.steamphone).UTM</key>
 		<array>
-			<string>com.droiddeck.UTM.vm-access</string>
+			<string>com.steamphone.UTM.vm-access</string>
 		</array>
 	</dict>
 </dict>

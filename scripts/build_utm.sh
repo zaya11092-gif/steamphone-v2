@@ -18,7 +18,7 @@ usage () {
     exit 1
 }
 
-PRODUCT_BUNDLE_PREFIX="com.droiddeck"
+PRODUCT_BUNDLE_PREFIX="com.steamphone"
 TEAM_IDENTIFIER=
 ARCH=arm64
 OUTPUT=$PWD

@@ -37,17 +37,17 @@ BUNDLE_ID=
 case $MODE in
 deb | ipa | ipa-hv | ipa-signed )
 	NAME="UTM"
-	BUNDLE_ID="com.droiddeck.UTM"
+	BUNDLE_ID="com.steamphone.UTM"
 	INPUT_APP="$INPUT/Products/Applications/UTM.app"
 	;;
 ipa-se | ipa-se-signed )
 	NAME="UTM SE"
-	BUNDLE_ID="com.droiddeck.UTM-SE"
+	BUNDLE_ID="com.steamphone.UTM-SE"
 	INPUT_APP="$INPUT/Products/Applications/UTM SE.app"
 	;;
 ipa-remote | ipa-remote-signed )
 	NAME="UTM Remote"
-	BUNDLE_ID="com.droiddeck.UTM-Remote"
+	BUNDLE_ID="com.steamphone.UTM-Remote"
 	INPUT_APP="$INPUT/Products/Applications/UTM Remote.app"
 	;;
 * )
@@ -140,7 +140,7 @@ create_deb() {
 	local OUTPUT=$2
 	local FAKEENT=$3
 	local DEB_TMP="$OUTPUT/deb"
-	local IPA_PATH="$DEB_TMP/var/tmp/com.droiddeck.UTM"
+	local IPA_PATH="$DEB_TMP/var/tmp/com.steamphone.UTM"
 	local SIZE_KIB=`du -sk "$INPUT_APP"| cut -f 1`
 	local VERSION=`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INPUT_APP/Info.plist"`
 
@@ -148,7 +148,7 @@ create_deb() {
 	rm -rf "$DEB_TMP"
 	mkdir -p "$DEB_TMP/DEBIAN"
 cat >"$DEB_TMP/DEBIAN/control" <<EOL
-Package: com.droiddeck.UTM
+Package: com.steamphone.UTM
 Version: ${VERSION}
 Section: Productivity
 Architecture: all
@@ -159,10 +159,10 @@ Description: Virtual machines for iOS
 Homepage: https://getutm.app/
 Name: UTM
 Author: osy
-Depiction: https://cydia.getutm.app/depiction/web/com.droiddeck.UTM.html
-Icon: https://cydia.getutm.app/assets/com.droiddeck.UTM/icon.png
-Moderndepiction: https://cydia.getutm.app/depiction/native/com.droiddeck.UTM.json
-Sileodepiction: https://cydia.getutm.app/depiction/native/com.droiddeck.UTM.json
+Depiction: https://cydia.getutm.app/depiction/web/com.steamphone.UTM.html
+Icon: https://cydia.getutm.app/assets/com.steamphone.UTM/icon.png
+Moderndepiction: https://cydia.getutm.app/depiction/native/com.steamphone.UTM.json
+Sileodepiction: https://cydia.getutm.app/depiction/native/com.steamphone.UTM.json
 Tags: compatible_min::ios15.0
 EOL
 	xcrun -sdk iphoneos clang -arch arm64 -fobjc-arc -miphoneos-version-min=15.0 "$BASEDIR/deb/postinst.m" "$BASEDIR/deb/MobileCoreServices.tbd" -o "$DEB_TMP/DEBIAN/postinst"
@@ -172,7 +172,7 @@ EOL
 	strip "$DEB_TMP/DEBIAN/prerm"
 	ldid -S"$BASEDIR/deb/prerm.xml" "$DEB_TMP/DEBIAN/prerm"
 	mkdir -p "$IPA_PATH"
-	create_fake_ipa "UTM" "com.droiddeck.UTM" "$INPUT" "$IPA_PATH" "$FAKEENT"
+	create_fake_ipa "UTM" "com.steamphone.UTM" "$INPUT" "$IPA_PATH" "$FAKEENT"
 	dpkg-deb -b -Zgzip -z9 "$DEB_TMP" "$OUTPUT/UTM.deb"
 	rm -r "$DEB_TMP"
 }

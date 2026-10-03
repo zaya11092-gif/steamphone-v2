@@ -73,7 +73,7 @@ fixup_dylib () {
     BASE=$(basename "$FILE")
     BASEFILENAME=${BASE%.*}
     LIBNAME=${BASEFILENAME#lib*}
-    BUNDLE_ID="com.droiddeck.${LIBNAME//_/-}"
+    BUNDLE_ID="com.steamphone.${LIBNAME//_/-}"
     FRAMEWORKNAME="$LIBNAME.framework"
     BASEFRAMEWORKPATH="$PREFIX/Frameworks/$FRAMEWORKNAME"
     if [ "$PLATFORM" == "macos" ]; then

@@ -1,4 +1,4 @@
-# DroidDeckOS guest image
+# SteamPhoneOS guest image
 
 The disk image the DroidDeck iOS app downloads and boots: an ARM64 Ubuntu
 userland with the x86_64 Steam client running under FEX-EMU — the same core
@@ -27,7 +27,7 @@ binfmt via Docker). Locally on any Ubuntu box with Docker:
 sudo ./image/build-image.sh 0.1.0
 ```
 
-Output: `image/out/DroidDeckOS-<version>-arm64.qcow2`.
+Output: `image/out/SteamPhoneOS-<version>-arm64.qcow2`.
 
 ## Known iteration points (expected to need CI round-trips)
 

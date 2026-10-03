@@ -25,7 +25,7 @@ enum DroidDeckError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .imageMissing:
-            return "No DroidDeckOS image found. Download it first or import one from Files."
+            return "No SteamPhoneOS image found. Download it first or import one from Files."
         }
     }
 }
@@ -108,10 +108,10 @@ final class DroidDeckImageDownloader: NSObject, URLSessionDownloadDelegate {
     }
 }
 
-/// Drives the DroidDeckOS install pipeline: download the guest disk image,
+/// Drives the SteamPhoneOS install pipeline: download the guest disk image,
 /// build the VM configuration and register the VM with UTM's data layer.
 @MainActor
-final class DroidDeckOSManager: ObservableObject {
+final class SteamPhoneOSManager: ObservableObject {
     enum Phase: Equatable {
         case idle
         case downloading(progress: Double)
@@ -147,7 +147,7 @@ final class DroidDeckOSManager: ObservableObject {
 
     // MARK: - State
 
-    /// The registered DroidDeckOS VM, if it exists already.
+    /// The registered SteamPhoneOS VM, if it exists already.
     var existingVM: VMData? {
         guard let data else { return nil }
         return data.virtualMachines.first {
@@ -218,7 +218,7 @@ final class DroidDeckOSManager: ObservableObject {
         }
     }
 
-    /// Imports a local qcow2 into a fresh DroidDeckOS VM. Used both after the
+    /// Imports a local qcow2 into a fresh SteamPhoneOS VM. Used both after the
     /// download finishes and by the Files-app import path.
     func installImage(at url: URL?, into data: UTMData) async throws {
         let sourceURL: URL

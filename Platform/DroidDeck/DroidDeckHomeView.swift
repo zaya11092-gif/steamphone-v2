@@ -27,6 +27,7 @@ struct DroidDeckHomeView: View {
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var showStreaming = false
+    @State private var showGPUBridge = false
     @State private var showImportPicker = false
     @State private var installError: String?
 
@@ -75,7 +76,10 @@ struct DroidDeckHomeView: View {
         .sheet(isPresented: $showStreaming) {
             MoonlightSessionView()
         }
-        .alert("DroidDeckOS", isPresented: Binding(
+        .sheet(isPresented: $showGPUBridge) {
+            GPUBridgeDiagnosticsView()
+        }
+        .alert("SteamPhoneOS", isPresented: Binding(
             get: { installError != nil },
             set: { if !$0 { installError = nil } }
         )) {
@@ -89,7 +93,7 @@ struct DroidDeckHomeView: View {
 
     private var header: some View {
         VStack(spacing: 6) {
-            Text("DroidDeck")
+            Text("SteamPhone")
                 .font(.system(size: 34, weight: .heavy, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(colors: [.cyan, .blue], startPoint: .leading, endPoint: .trailing)
@@ -109,7 +113,7 @@ struct DroidDeckHomeView: View {
                     .font(.system(size: 40))
                     .foregroundColor(.cyan)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("DroidDeckOS").font(.title2.bold())
+                    Text("SteamPhoneOS").font(.title2.bold())
                     Text(statusSubtitle).font(.subheadline).foregroundColor(.secondary)
                 }
                 Spacer()
@@ -118,7 +122,7 @@ struct DroidDeckHomeView: View {
             switch manager.phase {
             case .idle:
                 VStack(spacing: 10) {
-                    BigActionButton(title: manager.hasStagedImage ? "Install DroidDeckOS" : "Download DroidDeckOS (~4 GB)") {
+                    BigActionButton(title: manager.hasStagedImage ? "Install SteamPhoneOS" : "Download SteamPhoneOS (~4 GB)") {
                         if manager.hasStagedImage {
                             Task { @MainActor in
                                 do { try await manager.installImage(at: nil, into: data) }
@@ -156,7 +160,7 @@ struct DroidDeckHomeView: View {
                 }
                 .frame(maxWidth: .infinity)
             case .ready:
-                BigActionButton(title: "Boot DroidDeckOS") {
+                BigActionButton(title: "Boot SteamPhoneOS") {
                     bootDroidDeckOS()
                 }
             case .failed(let message):
@@ -198,7 +202,7 @@ struct DroidDeckHomeView: View {
 
     private var unsupportedWarning: some View {
         Label(
-            "This device has less than 6 GB of RAM. DroidDeckOS may be killed by the system while running.",
+            "This device has less than 6 GB of RAM. SteamPhoneOS may be killed by the system while running.",
             systemImage: "exclamationmark.triangle.fill"
         )
         .font(.subheadline)
@@ -220,12 +224,17 @@ struct DroidDeckHomeView: View {
             } label: {
                 Label("About & Licenses", systemImage: "info.circle")
             }
+            Button {
+                showGPUBridge = true
+            } label: {
+                Label("GPU Bridge diagnostics (G1)", systemImage: "speedometer")
+            }
             Button(role: .destructive) {
                 Task { @MainActor in
                     try? await manager.deleteVM()
                 }
             } label: {
-                Label("Delete DroidDeckOS VM", systemImage: "trash")
+                Label("Delete SteamPhoneOS VM", systemImage: "trash")
             }
         } label: {
             Image(systemName: "ellipsis.circle.fill")
