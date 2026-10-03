@@ -15,7 +15,7 @@ on:
 jobs:
   build-moltenvk:
     name: MoltenVK xcframework (ios-arm64)
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     env:
       MOLTENVK_REF: ${{ github.event.inputs.moltenvk_ref || 'v1.4.2' }}
@@ -43,7 +43,7 @@ jobs:
 
   build-app-vulkan:
     name: App with Vulkan probe
-    runs-on: macos-15
+    runs-on: macos-26
     needs: build-moltenvk
     timeout-minutes: 90
     steps:
@@ -92,7 +92,7 @@ jobs:
 
   gfxstream-host-spike:
     name: gfxstream host on iOS (spike, go/no-go data)
-    runs-on: macos-15
+    runs-on: macos-26
     continue-on-error: true   # failure == gate data, not a broken build
     timeout-minutes: 60
     strategy:
@@ -130,7 +130,7 @@ jobs:
 
   qemu-rutabaga-spike:
     name: QEMU virtio-gpu-rutabaga (spike, gate data)
-    runs-on: macos-15
+    runs-on: macos-26
     continue-on-error: true   # failure == gate data, not a broken build
     timeout-minutes: 90
     steps:
