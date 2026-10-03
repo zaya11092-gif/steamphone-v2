@@ -65,4 +65,4 @@ module Vulkan {
 EOF
 
 echo "==> Done."
-ls -R "$OUT" | head -20
+ls -R "$OUT" | head -20 || true

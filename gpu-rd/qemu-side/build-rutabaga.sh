@@ -19,55 +19,31 @@
 # Feature names to iterate on live in the fetched tree's Cargo.toml.
 set -euo pipefail
 
-RUTABAGA_REF="${RUTABAGA_REF:-main}"     # crosvm monorepo, rutabaga_gfx/ workspace
-RUTABAGA_TARGET="${RUTABAGA_TARGET-aarch64-apple-ios}"
-MIN_IOS="${MIN_IOS:-15.0}"
-OUTDIR="${OUTDIR:-$(pwd)/rutabaga-build}"
-PKGCONFIG_DIR="$OUTDIR/lib/pkgconfig"
+RUTABAGA_REF="${RUTABAGA_REF:-main}"     # magma-gpu/rutabaga_gfx branch/tag
+OUTDIR="${OUTDIR:-$(pwd)/rutabaga-install}"
 
-command -v rustup >/dev/null || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "$HOME/.cargo/env"
-if [ -n "$RUTABAGA_TARGET" ]; then
-    rustup target add "$RUTABAGA_TARGET"
-fi
-
-echo "==> Fetching crosvm (rutabaga_gfx @ $RUTABAGA_REF)"
+echo "==> Fetching rutabaga_gfx (magma-gpu @ $RUTABAGA_REF)"
 WORK="$(mktemp -d)"
-git clone --depth 1 --branch "$RUTABAGA_REF" https://chromium.googlesource.com/crosvm/crosvm "$WORK/crosvm" 2>/dev/null \
-  || git clone --depth 1 https://chromium.googlesource.com/crosvm/crosvm "$WORK/crosvm"
-cd "$WORK/crosvm/rutabaga_gfx"
-
-echo "==> cbindgen CLI (build.rs of the ffi crate invokes it in some revisions)"
-command -v cbindgen >/dev/null || cargo install --locked cbindgen || true
-
-mkdir -p "$OUTDIR/lib" "$PKGCONFIG_DIR" "$OUTDIR/include"
-
-# QEMU's meson wants pkg-config name 'rutabaga_gfx_ffi' -> the ffi sub-crate.
-echo "==> Building rutabaga_gfx_ffi ($([ -n "$RUTABAGA_TARGET" ] && echo "$RUTABAGA_TARGET" || echo native), minimal features)"
-if [ -n "$RUTABAGA_TARGET" ]; then
-    env IPHONEOS_DEPLOYMENT_TARGET="$MIN_IOS" \
-        cargo build --release --target "$RUTABAGA_TARGET" -p rutabaga_gfx_ffi --no-default-features
-    find "target/$RUTABAGA_TARGET/release" -name '*.a' -exec cp {} "$OUTDIR/lib/" \;
-else
-    cargo build --release -p rutabaga_gfx_ffi --no-default-features
-    find target/release -maxdepth 1 -name '*.a' -exec cp {} "$OUTDIR/lib/" \;
+git clone --depth 1 https://github.com/magma-gpu/rutabaga_gfx "$WORK/rutabaga_gfx"
+cd "$WORK/rutabaga_gfx"
+if [ "$RUTABAGA_REF" != "main" ]; then
+    git fetch --depth 1 origin "$RUTABAGA_REF" && git checkout FETCH_HEAD
 fi
 
-echo "==> Collecting headers (build.rs cbindgen output, tree-wide fallback)"
-find . "$WORK/crosvm/target" -name 'rutabaga*.h' -exec cp {} "$OUTDIR/include/" \; 2>/dev/null || true
-ls "$OUTDIR/include" || true
+# meson-native project (vendored rust crates via subprojects wraps; needs
+# meson >= 1.3 + a rust toolchain on PATH, no cargo manifest resolution).
+command -v meson >/dev/null || pip3 install meson
+command -v rustc >/dev/null || { echo "rustc required on PATH"; exit 1; }
 
-echo "==> Writing rutabaga_gfx_ffi.pc"
-cat > "$PKGCONFIG_DIR/rutabaga_gfx_ffi.pc" <<EOF
-prefix=$OUTDIR
-libdir=\${prefix}/lib
-includedir=\${prefix}/include
+echo "==> meson setup (ffi enabled, no gpu backends yet)"
+meson setup build     --buildtype release     --prefix "$OUTDIR"     -Dffi=true     -Dkumquat=false     -Dbuild-tests=false     -Dfeatures=[]
 
-Name: rutabaga_gfx_ffi
-Description: rutabaga_gfx FFI (paravirt GPU framework, QEMU meson dep name)
-Version: 0.1
-Libs: -L\${libdir} -lrutabaga_gfx_ffi
-Cflags: -I\${includedir}
-EOF
+echo "==> Compiling"
+meson compile -C build
 
-echo "==> Done: $OUTDIR (PKG_CONFIG_PATH=$PKGCONFIG_DIR)"
+echo "==> Installing (static lib + rutabaga_gfx_ffi.pc + headers)"
+meson install -C build
+
+echo "==> Artifacts"
+find "$OUTDIR" -name '*.a' -o -name '*.pc' -o -name 'rutabaga*.h' | head -10
+echo "==> Done: $OUTDIR (PKG_CONFIG_PATH=$OUTDIR/lib/pkgconfig)"

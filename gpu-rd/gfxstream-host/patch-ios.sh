@@ -32,3 +32,44 @@ for f in src.rglob('*'):
         changed += 1
 print(f'patched {changed} file(s) referencing libproc.h')
 PYEOF
+
+# system-native-mac.mm: IOKit/AppKit (disk enums, dock icon, App Nap) do not
+# exist on iOS. Replace the file's body with iOS stubs keeping the exact
+# signatures the rest of gfxstream calls.
+python3 - "$SRC" <<'PYSTUB'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+target = src / 'common' / 'base' / 'system-native-mac.mm'
+if target.exists():
+    target.write_text(
+        "// iOS stub for gfxstream common/base/system-native-mac.mm\n"
+        "// (original uses IOKit/AppKit, which do not exist on iOS).\n"
+        "#include <cstdint>\n"
+        "#include <foundation/Optional.h>\n"
+        "\n"
+        "namespace gfxstream {\n"
+        "namespace base {\n"
+        "\n"
+        "void disableAppNap_macImpl(void) {}\n"
+        "\n"
+        "void cpuUsageCurrentThread_macImpl(uint64_t* user, uint64_t* sys) {\n"
+        "    if (user) { *user = 0; }\n"
+        "    if (sys) { *sys = 0; }\n"
+        "}\n"
+        "\n"
+        "Optional<DiskKind> nativeDiskKind(int st_dev) {\n"
+        "    (void)st_dev;\n"
+        "    return {};\n"
+        "}\n"
+        "\n"
+        "void hideDockIcon_macImpl(void) {}\n"
+        "\n"
+        "}  // namespace base\n"
+        "}  // namespace gfxstream\n",
+        encoding='utf-8')
+    print('stubbed common/base/system-native-mac.mm for iOS')
+else:
+    print('system-native-mac.mm not found; upstream layout changed?')
+PYSTUB
