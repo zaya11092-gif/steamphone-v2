@@ -55,6 +55,7 @@ struct GPUBridgeDiagnosticsView: View {
 
                     statsSection
                     checklistSection
+                    vulkanSection
                     contextSection
                 }
                 .padding()
@@ -120,6 +121,38 @@ struct GPUBridgeDiagnosticsView: View {
             .padding()
     }
 
+    private var vulkanSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Vulkan via MoltenVK (3D track, WP1)").font(.headline)
+            if SPGBVulkanProbe.isAvailable {
+                HStack {
+                    Button {
+                        model.runVulkanProbe()
+                    } label: {
+                        Label("Run probe", systemImage: "bolt.fill")
+                    }
+                    .buttonStyle(.bordered)
+                    Spacer()
+                    Image(systemName: model.vulkanProbePassed ? "checkmark.circle.fill" : "circle.dashed")
+                        .foregroundColor(model.vulkanProbePassed ? .green : .secondary)
+                }
+                if let summary = model.vulkanSummary {
+                    Text(summary)
+                        .font(.footnote.monospaced())
+                        .foregroundColor(.secondary)
+                        .textSelection(.enabled)
+                }
+            } else {
+                Text("MoltenVK not linked into this build. Build the MoltenVK profile to activate the probe (gpu-rd/moltenvk/README.md).")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+    }
+
     private func stat(_ label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).font(.caption).foregroundColor(.secondary)
@@ -166,6 +199,8 @@ final class GPUBridgeDiagnosticsModel: NSObject, ObservableObject {
     @Published var bytesUploaded: UInt64 = 0
     @Published var commandsExecuted: UInt64 = 0
     @Published var checklist = Checklist()
+    @Published var vulkanSummary: String?
+    @Published var vulkanProbePassed = false
 
     let quadsPerFrame = 64
     private(set) var renderer: SPGBHostRenderer?
@@ -195,6 +230,26 @@ final class GPUBridgeDiagnosticsModel: NSObject, ObservableObject {
 
     func toggleRunning() {
         isRunning.toggle()
+    }
+
+    func runVulkanProbe() {
+        guard SPGBVulkanProbe.isAvailable else {
+            vulkanSummary = "Vulkan module not available in this build."
+            return
+        }
+        do {
+            let result = try SPGBVulkanProbe.run()
+            vulkanProbePassed = true
+            vulkanSummary = """
+            device: \(result.deviceName)
+            Vulkan: \(result.apiVersion)   driver: \(result.driverVersion)
+            queue families: \(result.queueFamilyCount)   memory types: \(result.memoryTypeCount)
+            graphics queue: \(result.graphicsQueue ? "yes" : "no")
+            """
+        } catch {
+            vulkanProbePassed = false
+            vulkanSummary = "probe failed: \(error.localizedDescription)"
+        }
     }
 
     /// Called by GPUBridgeMetalView on every vsync tick.

@@ -6,12 +6,17 @@ on:
   workflow_dispatch:
     inputs:
       image_version:
-        description: 'Image version tag (e.g. 0.1.0)'
+        description: 'Image version tag (e.g. 0.2.0)'
         required: false
         default: ''
+      build_mesa:
+        description: 'Build Mesa with gfxstream guest driver? (WP2, experimental)'
+        required: false
+        default: 'false'
 
 env:
   IMAGE_VERSION: ${{ github.event.inputs.image_version || github.ref_name }}
+  BUILD_MESA: ${{ github.event.inputs.build_mesa || 'false' }}
 
 jobs:
   build-image:
@@ -28,7 +33,7 @@ jobs:
           df -h /
       - name: Build image
         run: |
-          sudo ./image/build-image.sh "$IMAGE_VERSION"
+          sudo env BUILD_MESA="${BUILD_MESA}" MESA_REF="${MESA_REF:-}" ./image/build-image.sh "$IMAGE_VERSION"
       - name: Checksum
         run: |
           cd image/out && sha256sum *.qcow2 > SHA256SUMS && cat SHA256SUMS

@@ -124,4 +124,14 @@ echo "==> Mark container image for export"
 # documents intent.
 touch /.droiddeckos
 
+# 3D track (gpu-rd/3d-plan.md WP2): build Mesa with the gfxstream guest
+# driver. Opt-in while the meson option set is being pinned in CI; enabled
+# by passing -e BUILD_MESA=1 to the container in build-image.sh.
+if [ "${BUILD_MESA:-0}" = "1" ] || [ "${BUILD_MESA:-}" = "true" ]; then
+    echo "==> Building Mesa with gfxstream guest components (WP2)"
+    /bin/bash /droiddeck/build-mesa.sh
+else
+    echo "==> Skipping Mesa gfxstream build (BUILD_MESA!=1); image ships llvmpipe/lavapipe only"
+fi
+
 echo "==> chroot build complete"

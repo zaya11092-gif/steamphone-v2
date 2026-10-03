@@ -1,0 +1,143 @@
+name: Vulkan Track (3D acceleration)
+on:
+  workflow_dispatch:
+    inputs:
+      moltenvk_ref:
+        description: 'MoltenVK git ref (tag/branch/commit)'
+        required: false
+        default: ''
+  push:
+    paths:
+      - 'gpu-rd/**'
+      - 'scripts/link_moltenvk.py'
+      - '.github/workflows/vulkan-track.yml'
+
+jobs:
+  build-moltenvk:
+    name: MoltenVK xcframework (ios-arm64)
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      MOLTENVK_REF: ${{ github.event.inputs.moltenvk_ref || '1.2.11' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cache MoltenVK build
+        id: cache-mvk
+        uses: actions/cache@v4
+        with:
+          path: gpu-rd/moltenvk/build
+          key: moltenvk-${{ env.MOLTENVK_REF }}-ios-arm64
+      - name: Build
+        if: steps.cache-mvk.outputs.cache-hit != 'true'
+        run: |
+          chmod +x gpu-rd/moltenvk/build.sh
+          gpu-rd/moltenvk/build.sh "$MOLTENVK_REF"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoltenVK-ios-arm64
+          path: |
+            gpu-rd/moltenvk/build/MoltenVK.xcframework
+            gpu-rd/moltenvk/module
+
+  build-app-vulkan:
+    name: App with Vulkan probe
+    runs-on: macos-15
+    needs: build-moltenvk
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Download MoltenVK
+        uses: actions/download-artifact@v4
+        with:
+          name: MoltenVK-ios-arm64
+          path: gpu-rd/moltenvk
+      - name: Cache Sysroot
+        id: cache-sysroot
+        uses: actions/cache/restore@v4
+        with:
+          path: ./sysroot-ios-arm64
+          key: ios-arm64-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh') }}-${{ hashFiles('patches/**') }}
+          fail-on-cache-miss: false
+      - name: Build Sysroot (if uncached)
+        if: steps.cache-sysroot.outputs.cache-hit != 'true'
+        run: |
+          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake llvm spirv-llvm-translator libxcb libxrandr
+          pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
+          ./scripts/build_dependencies.sh -p ios -a arm64
+      - name: Link MoltenVK into project
+        run: python3 scripts/link_moltenvk.py
+      - name: Build app (JIT edition)
+        run: |
+          ./scripts/build_utm.sh -k iphoneos -s iOS -a arm64 -o UTM
+          tar -acf UTM.xcarchive.tgz UTM.xcarchive
+      - name: Install ldid
+        run: brew install ldid
+      - name: Package IPA
+        run: |
+          tar -xf UTM.xcarchive.tgz
+          ./scripts/package.sh ipa UTM.xcarchive .
+          mv UTM.ipa SteamPhone-JIT-VulkanProbe.ipa
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: SteamPhone-JIT-VulkanProbe.ipa
+          path: SteamPhone-JIT-VulkanProbe.ipa
+
+  gfxstream-host-spike:
+    name: gfxstream host on iOS (spike, go/no-go data)
+    runs-on: macos-15
+    continue-on-error: true   # failure == gate data, not a broken build
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        target:
+          - name: ios-device
+            cmake_args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release
+          - name: macos-arm64   # control: same code, known-good platform
+            cmake_args: -DCMAKE_BUILD_TYPE=Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Fetch gfxstream
+        run: |
+          git clone --depth 1 https://github.com/google/gfxstream gpu-rd/gfxstream-host/src
+      - name: Configure (${{ matrix.target.name }})
+        run: |
+          cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \
+            ${{ matrix.target.cmake_args }} \
+            -DBUILD_TESTING=OFF
+      - name: Build host renderer
+        run: |
+          cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }} --parallel 4 || \
+          cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }}
+      - name: Report artifacts
+        run: find gpu-rd/gfxstream-host/build -name '*.a' -o -name '*.framework' | head -20
+
+  qemu-rutabaga-spike:
+    name: QEMU virtio-gpu-rutabaga (spike, gate data)
+    runs-on: macos-15
+    continue-on-error: true   # failure == gate data, not a broken build
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run fork spike (fetch pinned QEMU, apply UTM patch, build rutabaga, configure)
+        run: |
+          chmod +x gpu-rd/qemu-side/build-fork.sh gpu-rd/qemu-side/build-rutabaga.sh
+          bash gpu-rd/qemu-side/build-fork.sh 2>&1 | tee qemu-spike.log
+      - name: Gate summary
+        if: always()
+        run: |
+          grep -E "GATE (PASS|DATA)" qemu-spike.log || echo "no gate lines — inspect log"
+      - name: Upload spike log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-rutabaga-spike-log
+          path: qemu-spike.log

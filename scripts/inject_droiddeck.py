@@ -35,6 +35,7 @@ FILES = [
     ("GPUBridge/SPGBHostRenderer.swift", "GPUBridge"),
     ("GPUBridge/SPGBGuestSimulator.swift", "GPUBridge"),
     ("GPUBridge/GPUBridgeDiagnosticsView.swift", "GPUBridge"),
+    ("GPUBridge/SPGBVulkanProbe.swift", "GPUBridge"),
 ]
 
 

@@ -64,6 +64,8 @@ docker run --name droiddeck-build --privileged \
     -e BASE_SUITE="$BASE_SUITE" \
     -e MIRROR="$MIRROR" \
     -e QEMU_SRC="$QEMU_SRC" \
+    -e BUILD_MESA="${BUILD_MESA:-0}" \
+    -e MESA_REF="${MESA_REF:-}" \
     --platform linux/arm64 \
     ubuntu:$BASE_SUITE \
     /bin/bash /droiddeck/chroot-build.sh
