@@ -88,3 +88,30 @@ Remaining hard problem, unchanged: the gfxstream **host renderer on iOS**
 (WP3) — rutabaga is the bus, gfxstream is the engine that still has to be
 ported onto MoltenVK/Metal. SPGB v1's Metal side remains the fallback 2D
 bridge and the pattern the host port follows.
+
+---
+
+## Assembly status (2026-10-04): the missing layer is a pipeline
+
+The chain is no longer hypothetical. What exists and runs in CI today:
+
+| Layer | State | Where |
+| --- | --- | --- |
+| MoltenVK → Metal | **building** (xcframework artifact) | `gpu-rd/moltenvk/build.sh` |
+| gfxstream host | macOS control **green**; iOS leg porting (libproc + mac.mm stubs landed; compiles against MoltenVK headers now) | `gpu-rd/gfxstream-host/` |
+| gfxstream_backend.pc | **generated** by the iOS/macOS legs (consumed by rutabaga's meson) | vulkan-track job |
+| rutabaga_gfx → virtio-gpu-rutabaga | **GATE PASSED** (device objects compiled+linked into QEMU libcommon.a) | `gpu-rd/qemu-side/` |
+| opt-in 3D engine build | **new job**: RUTABAGA_TRACK=1 sysroot + `SteamPhone-3D-experimental.ipa` (SPGB_SKIP_GFXSTREAM=true first — plumbing before backend) | vulkan-track `build-app-3d` |
+| guest Mesa | building with `-Dvulkan-drivers=swrast,gfxstream-experimental` (option names pinned empirically) | `image/build-mesa.sh` |
+
+## What "usable and playable" means, concretely
+
+1. **UI usable** (near): paravirt 2D+UI accel — Steam/WebKit draws through the
+   guest GL stack onto the Apple GPU. Requires: rutabaga in the shipped QEMU
+   (plumbing milestone now building) + gfxstream GLES guest path.
+2. **Older/light games playable** (mid): guest Vulkan via gfxstream → DXVK in
+   Wine. Needs the full chain above + the gfxstream iOS port finished (WP3).
+3. **Modern games**: stay streaming-only. Honest physics: even with perfect
+   GPU accel, game logic runs under TCG (no Hypervisor on iOS) *and* x86 game
+   code needs FEX→ARM64 translation *inside* the VM — double translation.
+   GPU accel removes the renderer bottleneck, not the CPU one.
