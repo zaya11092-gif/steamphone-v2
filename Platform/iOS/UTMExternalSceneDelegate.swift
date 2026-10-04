@@ -68,7 +68,7 @@ extension View {
     /// `UTMExternalSceneDelegate`.
     @ViewBuilder
     func externalDisplayAccessory() -> some View {
-        #if compiler(>=6.3) // sceneAccessory APIs require the iOS 27 SDK
+        #if compiler(>=6.4) // sceneAccessory APIs require the iOS 27 SDK
         if #available(iOS 27, *) {
             sceneAccessory {
                 ExternalNonInteractiveAccessory {

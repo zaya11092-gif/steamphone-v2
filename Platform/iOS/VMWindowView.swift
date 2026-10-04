@@ -351,7 +351,7 @@ private struct VMWindowCloseConfirmationModifier: ViewModifier {
     func body(content: Content) -> some View {
         #if os(visionOS) || WITH_REMOTE
         content
-        #elseif compiler(>=6.3) // dismissalConfirmationDialog: iOS 27 SDK API
+        #elseif compiler(>=6.4) // dismissalConfirmationDialog: iOS 27 SDK API
         if #available(iOS 27, *) {
             content.dismissalConfirmationDialog("This virtual machine is still running.", shouldPresent: isLastWindowOfRunningVM) {
                 Button("Stop", role: .destructive) {
