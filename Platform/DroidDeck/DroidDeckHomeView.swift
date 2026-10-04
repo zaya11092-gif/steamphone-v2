@@ -45,7 +45,7 @@ struct DroidDeckHomeView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 32)
             }
-            .background(droidDeckBackground.ignoresSafeArea())
+            .background(Color.droidDeckBackground.ignoresSafeArea())
             .navigationBarHidden(true)
         }
         .navigationViewStyle(.stack)

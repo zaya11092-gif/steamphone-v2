@@ -33,8 +33,8 @@ struct MoonlightHost: Identifiable, Equatable {
     }
 
     var displayAddress: String {
-        if case .hostPort(let host, _) = endpoint, let hostname = host {
-            return "\(hostname)"
+        if case .hostPort(let host, _) = endpoint {
+            return "\(host)"
         }
         return "unknown"
     }

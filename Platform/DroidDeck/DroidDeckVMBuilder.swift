@@ -30,6 +30,8 @@ enum DroidDeckVMBuilder {
     ///
     /// - Parameter imageURL: qcow2 disk image to attach as the boot drive.
     ///   `UTMData.create(config:)` imports the file into the .utm bundle.
+    /// MainActor: UTMQemuConfiguration is main-actor isolated.
+    @MainActor
     static func makeConfiguration(imageURL: URL) -> UTMQemuConfiguration {
         let config = UTMQemuConfiguration()
         config.information.name = DroidDeckBuildConfig.vmName
@@ -53,10 +55,10 @@ enum DroidDeckVMBuilder {
         // virtio-gpu (2D only; there is no host GPU acceleration on iOS).
         // Follow the wizard's pattern of checking the constant exists for the
         // target before assigning, so an engine update cannot break the build.
-        if let display = config.displays.first {
+        if !config.displays.isEmpty {
             let newCard = "virtio-gpu-pci"
             if config.system.architecture.displayDeviceType.allRawValues.contains(where: { $0 == newCard }) {
-                display.hardware = AnyQEMUConstant(rawValue: newCard)!
+                config.displays[0].hardware = AnyQEMUConstant(rawValue: newCard)!
             }
         }
 
