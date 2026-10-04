@@ -1,0 +1,94 @@
+#!/bin/bash
+# Build the 3D paravirtualization chain into an existing UTM sysroot (opt-in,
+# RUTABAGA_TRACK=1 in the dependency build):
+#
+#   gfxstream host (iOS, on MoltenVK)  ->  gfxstream_backend.pc
+#        -> rutabaga_gfx (meson, -Dfeatures=gfxstream)  ->  rutabaga_gfx_ffi.pc
+#        -> QEMU virtio-gpu-rutabaga (already in utmapp/QEMU, compiled when
+#           meson finds rutabaga_gfx_ffi)
+#
+# Called from scripts/build_dependencies.sh AFTER build_qemu_dependencies and
+# BEFORE the QEMU build itself; exports PKG_CONFIG_PATH additions. Every step
+# is best-effort: a failure prints GATE data and returns nonzero, and the
+# caller decides whether the track is fatal (it is only fatal when the 3D
+# engine artifact is explicitly requested).
+#
+# Env:
+#   SPGB_CHAIN_PREFIX   install prefix (default: $PREFIX/spgb-chain)
+#   SPGB_GFXSTREAM_REF  google/gfxstream ref (default: main)
+#   SPGB_SKIP_GFXSTREAM true to skip the host renderer (rutabaga then builds
+#                       without backends — device plumbing only)
+set -euo pipefail
+
+CHAIN_PREFIX="${SPGB_CHAIN_PREFIX:-$PREFIX/spgb-chain}"
+GFXSTREAM_REF="${SPGB_GFXSTREAM_REF:-main}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORK="$(mktemp -d)"
+PC_DIR="$CHAIN_PREFIX/lib/pkgconfig"
+mkdir -p "$PC_DIR" "$CHAIN_PREFIX/include"
+
+echo "==> [3D chain] target prefix: $CHAIN_PREFIX"
+
+# --------------------------------------------------------------- gfxstream
+if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ]; then
+    echo "==> [3D chain] fetching gfxstream ($GFXSTREAM_REF)"
+    git clone --depth 1 "https://github.com/google/gfxstream" "$WORK/gfxstream"
+    GFXSTREAM_PATCH="$(dirname "$SCRIPT_DIR")/gfxstream-host/patch-ios.sh"
+    [ -f "$GFXSTREAM_PATCH" ] && bash "$GFXSTREAM_PATCH" "$WORK/gfxstream" ios || true
+
+    echo "==> [3D chain] configuring gfxstream host for iOS"
+    # Vulkan headers: the MoltenVK module staged by gpu-rd/moltenvk/build.sh
+    # when the profile is enabled, otherwise the sysroot's own.
+    VK_INCLUDE="${SPGB_VULKAN_INCLUDE:-$PREFIX/include}"
+    cmake -S "$WORK/gfxstream" -B "$WORK/gfxstream-build" \
+        -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos \
+        -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_CXX_FLAGS="-I$VK_INCLUDE" \
+        -DCMAKE_INSTALL_PREFIX="$CHAIN_PREFIX" || {
+        echo "GATE DATA: gfxstream cmake configure failed for iOS"; exit 2;
+    }
+    cmake --build "$WORK/gfxstream-build" --parallel 4 || {
+        echo "GATE DATA: gfxstream host build failed for iOS (see log)"; exit 3;
+    }
+    cmake --install "$WORK/gfxstream-build" || true
+
+    # gfxstream's cmake does not ship a pc file; write the one rutabaga needs.
+    GFXSTREAM_LIBDIR="$CHAIN_PREFIX/lib"
+    cat > "$PC_DIR/gfxstream_backend.pc" <<EOF
+prefix=$CHAIN_PREFIX
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+
+Name: gfxstream_backend
+Description: gfxstream host renderer (SteamPhone 3D chain)
+Version: 0.1.2
+Libs: -L\${libdir} -lgfxstream_backend
+Cflags: -I\${includedir} -I$VK_INCLUDE
+EOF
+    # Stage the backend headers rutabaga's ffi build includes.
+    cp -R "$WORK/gfxstream/include/." "$CHAIN_PREFIX/include/" 2>/dev/null || true
+    echo "==> [3D chain] gfxstream installed; pc at $PC_DIR/gfxstream_backend.pc"
+fi
+
+# ---------------------------------------------------------------- rutabaga
+echo "==> [3D chain] building rutabaga_gfx (magma-gpu, meson-native)"
+git clone --depth 1 "https://github.com/magma-gpu/rutabaga_gfx" "$WORK/rutabaga_gfx"
+RUTABAGA_FEATURES="[]"
+if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ] && [ -f "$PC_DIR/gfxstream_backend.pc" ]; then
+    RUTABAGA_FEATURES="['gfxstream']"
+fi
+export PKG_CONFIG_PATH="$PC_DIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+cd "$WORK/rutabaga_gfx"
+meson setup build-rutabaga \
+    --buildtype release \
+    --prefix "$CHAIN_PREFIX" \
+    -Dffi=true -Dkumquat=false -Dbuild-tests=false \
+    -Dfeatures="$RUTABAGA_FEATURES" \
+    || { echo "GATE DATA: rutabaga meson setup failed"; exit 4; }
+meson compile -C build-rutabaga || { echo "GATE DATA: rutabaga build failed"; exit 5; }
+meson install -C build-rutabaga
+
+echo "==> [3D chain] complete:"
+find "$CHAIN_PREFIX" \( -name '*.a' -o -name '*.pc' \) | head -12
+echo "==> [3D chain] remember: QEMU needs PKG_CONFIG_PATH=$PC_DIR"

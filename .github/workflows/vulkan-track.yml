@@ -93,20 +93,28 @@ jobs:
           path: SteamPhone-JIT-VulkanProbe.ipa
 
   gfxstream-host-spike:
-    name: gfxstream host on iOS (spike, go/no-go data)
+    name: gfxstream host (${{ matrix.target.name }})
     runs-on: macos-26
     continue-on-error: true   # failure == gate data, not a broken build
-    timeout-minutes: 60
+    timeout-minutes: 75
     strategy:
       matrix:
         target:
           - name: ios-device
-            cmake_args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release
+            cmake_args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+            needs_mvk: true
           - name: macos-arm64   # control: same code, known-good platform
-            cmake_args: -DCMAKE_BUILD_TYPE=Release
+            cmake_args: -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+            needs_mvk: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download MoltenVK (iOS leg compiles against its Vulkan headers)
+        if: matrix.target.needs_mvk
+        uses: actions/download-artifact@v4
+        with:
+          name: MoltenVK-ios-arm64
+          path: gpu-rd/moltenvk
       - name: Fetch gfxstream
         run: |
           git clone --depth 1 https://github.com/google/gfxstream gpu-rd/gfxstream-host/src
@@ -120,15 +128,42 @@ jobs:
           fi
       - name: Configure (${{ matrix.target.name }})
         run: |
+          EXTRA=""
+          if [[ "${{ matrix.target.name }}" == ios* ]]; then
+            EXTRA="-DCMAKE_CXX_FLAGS=-I$PWD/gpu-rd/moltenvk/module/vulkan"
+          fi
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \
             ${{ matrix.target.cmake_args }} \
-            -DBUILD_TESTING=OFF
-      - name: Build host renderer
+            $EXTRA \
+            -DBUILD_TESTING=OFF \
+            -DCMAKE_INSTALL_PREFIX=$PWD/gfxstream-host/prefix-${{ matrix.target.name }}
+      - name: Build + install host renderer
         run: |
           cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }} --parallel 4 || \
           cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }}
-      - name: Report artifacts
-        run: find gpu-rd/gfxstream-host/build -name '*.a' -o -name '*.framework' | head -20
+          cmake --install gpu-rd/gfxstream-host/build/${{ matrix.target.name }} || true
+          # Write the pc file rutabaga's meson consumes.
+          P=gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
+          mkdir -p "$P/lib/pkgconfig" "$P/include"
+          cp -R gpu-rd/gfxstream-host/src/include/. "$P/include/" 2>/dev/null || true
+          cat > "$P/lib/pkgconfig/gfxstream_backend.pc" <<EOF
+          prefix=$PWD/$P
+          libdir=\${prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: gfxstream_backend
+          Description: gfxstream host renderer (SteamPhone 3D chain)
+          Version: 0.1.2
+          Libs: -L\${libdir} -lgfxstream_backend
+          Cflags: -I\${includedir}
+          EOF
+          find "$P" -name '*.a' -o -name '*.pc' | head -20
+      - name: Upload host prefix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfxstream-host-${{ matrix.target.name }}
+          path: gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
 
   qemu-rutabaga-spike:
     name: QEMU virtio-gpu-rutabaga (spike, gate data)
@@ -152,3 +187,65 @@ jobs:
         with:
           name: qemu-rutabaga-spike-log
           path: qemu-spike.log
+
+  build-app-3d:
+    name: Engine with 3D chain (experimental)
+    runs-on: macos-26
+    needs: build-moltenvk
+    continue-on-error: true   # the 3D chain is experimental; failures are gate data
+    timeout-minutes: 150
+    env:
+      RUTABAGA_TRACK: '1'
+      SPGB_SKIP_GFXSTREAM: 'true'   # rutabaga plumbing first; gfxstream backend joins when the iOS port compiles
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Cache Sysroot (3D)
+        id: cache-sysroot3d
+        uses: actions/cache/restore@v4
+        with:
+          path: ./sysroot-ios-arm64
+          key: ios-arm64-3d-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh', 'gpu-rd/build-3d-chain.sh') }}-${{ hashFiles('patches/**') }}
+          lookup-only: true
+      - name: Build Sysroot with 3D chain
+        if: steps.cache-sysroot3d.outputs.cache-hit != 'true'
+        run: |
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
+          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
+          pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
+          ./scripts/build_dependencies.sh -p ios -a arm64
+          tar -acf sysroot-3d.tgz sysroot-ios-arm64
+      - name: Save 3D Sysroot Cache
+        if: steps.cache-sysroot3d.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: ./sysroot-ios-arm64
+          key: ios-arm64-3d-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh', 'gpu-rd/build-3d-chain.sh') }}-${{ hashFiles('patches/**') }}
+      - name: Verify rutabaga device in QEMU
+        run: |
+          find sysroot-ios-arm64 -name 'libcommon*.a' | head -2
+          nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo "0 rutabaga symbols (device not selected)"
+      - name: Link MoltenVK into project
+        run: |
+          "$HOME/.cargo/bin/cargo" --version 2>/dev/null || true
+          python3 scripts/link_moltenvk.py || echo "link_moltenvk skipped (framework not staged in this job)"
+      - name: Build experimental IPA
+        run: |
+          ./scripts/build_utm.sh -k iphoneos -s iOS -a arm64 -o UTM
+          tar -acf UTM-3D.xcarchive.tgz UTM.xcarchive
+      - name: Install ldid
+        run: brew install ldid
+      - name: Package
+        run: |
+          tar -xf UTM-3D.xcarchive.tgz
+          ./scripts/package.sh ipa UTM.xcarchive .
+          mv UTM.ipa SteamPhone-3D-experimental.ipa
+      - name: Upload experimental IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: SteamPhone-3D-experimental.ipa
+          path: SteamPhone-3D-experimental.ipa
