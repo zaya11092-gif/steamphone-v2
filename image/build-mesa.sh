@@ -5,11 +5,10 @@
 # qemu-user overhead for the compile.
 #
 # KNOWN ITERATION POINTS (this script is the vehicle, expect CI round-trips):
-#  - The exact meson option set for gfxstream guest components: upstream
-#    Mesa wires them under src/gfxstream/guest; depending on the release the
-#    toggles are -Dgfxstream-vulkan / -Dgfxstream-gles or they ride along
-#    with -Dplatforms=... + virtio winsys. `meson setup --help` output is
-#    dumped on failure to pin the names quickly.
+#  - Option names pinned empirically (2026-10): gfxstream is a VULKAN driver
+#    choice (-Dvulkan-drivers=...,gfxstream-experimental) per
+#    meson_options.txt; GL still rides on llvmpipe until the gfxstream GLES
+#    path is confirmed upstream.
 #  - MESA_REF pin: first release line with gfxstream merged (24.3.x). Verify
 #    the tag exists: https://gitlab.freedesktop.org/mesa/mesa/-/tags
 set -euo pipefail
@@ -53,8 +52,8 @@ meson setup build \
     -Dgbm=enabled \
     -Dopengl=true \
     -Dgles1=disabled -Dgles2=enabled \
-    -Dgallium-drivers=llvmpipe,gfxstream \
-    -Dvulkan-drivers=swrast \
+    -Dgallium-drivers=llvmpipe \
+    -Dvulkan-drivers=swrast,gfxstream-experimental \
     -Dvideo-codecs= \
     -Dtools= \
     -Dzstd=enabled \
