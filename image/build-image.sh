@@ -95,6 +95,8 @@ mount --bind /sys "$WORK_DIR/mnt/sys"
 # The install script lives on the host; bind it into the chroot.
 mkdir -p "$WORK_DIR/mnt/droiddeck"
 mount --bind "$SCRIPT_DIR" "$WORK_DIR/mnt/droiddeck"
+# DNS: the docker-exported rootfs has no usable resolv.conf; borrow the host's.
+cp /etc/resolv.conf "$WORK_DIR/mnt/etc/resolv.conf"
 cp /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/" 2>/dev/null || \
     apt-get install -y qemu-user-static && cp /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/"
 chroot "$WORK_DIR/mnt" /bin/bash /droiddeck/image-install-kernel.sh
