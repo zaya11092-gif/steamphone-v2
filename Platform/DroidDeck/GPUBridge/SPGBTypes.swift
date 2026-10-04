@@ -204,7 +204,9 @@ enum SPGBError: Error, LocalizedError {
 
 private extension Data {
     mutating func appendLE<T: FixedWidthInteger>(_ value: T) {
-        withUnsafeBytes(of: value.littleEndian) { bytes in
+        // Qualified global call: the bare form resolves to Data's instance
+        // method on current SDKs, which cannot take `of:`.
+        Swift.withUnsafeBytes(of: value.littleEndian) { bytes in
             append(contentsOf: bytes)
         }
     }
