@@ -2731,6 +2731,7 @@
 		EC11C0DCA3634BFFB043B377 /* GPUBridge */ = {
 			isa = PBXGroup;
 			children = (
+				62CC7865944EC63ABF6A2846 /* SPGBVulkanProbe.swift */,
 				53DB247A7C852242954EC2E0 /* SPGBTypes.swift */,
 				78C4CD0E43D1077CF5CADF73 /* SPGBHostRenderer.swift */,
 				923BF642E934ACDC994AA90F /* SPGBGuestSimulator.swift */,

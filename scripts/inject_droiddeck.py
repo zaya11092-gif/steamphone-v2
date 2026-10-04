@@ -170,10 +170,20 @@ def main() -> None:
             changed = True
 
     # 3. File references + build files + sources phase entries.
-    for rel_path, _ in files:
+    #    Membership check is per-file: a file added when its subgroup already
+    #    existed still needs to be listed in that group's children (otherwise
+    #    the orphaned reference lands at project root and Xcode cannot find it).
+    for rel_path, sub in files:
         ref = uuid_for("ref:" + rel_path)
         name = Path(rel_path).name
-        if f"{ref} /* {name} */ = {{isa = PBXFileReference" in txt:
+        fully_registered = f"{ref} /* {name} */ = {{isa = PBXFileReference" in txt
+        if fully_registered:
+            group = droiddeck_group if not sub else uuid_for("group:" + sub)
+            if f"{ref} /* {name} */," in txt:
+                continue
+            txt = insert_into_group_children(
+                txt, group, f"\t\t\t\t{ref} /* {name} */,")
+            changed = True
             continue
         txt = insert_after(
             txt,
@@ -181,6 +191,9 @@ def main() -> None:
             f"\n\t\t{ref} /* {name} */ = {{isa = PBXFileReference; fileEncoding = 4; "
             f"lastKnownFileType = sourcecode.swift; path = {name}; sourceTree = \"<group>\"; }};",
         )
+        group = droiddeck_group if not sub else uuid_for("group:" + sub)
+        txt = insert_into_group_children(
+            txt, group, f"\t\t\t\t{ref} /* {name} */,")
         for target in APP_TARGETS:
             build = uuid_for(f"build:{target}:{rel_path}")
             txt = insert_after(
