@@ -95,6 +95,7 @@ jobs:
   gfxstream-host-spike:
     name: gfxstream host (${{ matrix.target.name }})
     runs-on: macos-26
+    needs: build-moltenvk
     continue-on-error: true   # failure == gate data, not a broken build
     timeout-minutes: 75
     strategy:
@@ -209,12 +210,14 @@ jobs:
           path: ./sysroot-ios-arm64
           key: ios-arm64-3d-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh', 'gpu-rd/build-3d-chain.sh') }}-${{ hashFiles('patches/**') }}
           lookup-only: true
+      - name: Setup Path
+        if: steps.cache-sysroot3d.outputs.cache-hit != 'true'
+        run: echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
       - name: Build Sysroot with 3D chain
         if: steps.cache-sysroot3d.outputs.cache-hit != 'true'
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
-          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
           ./scripts/build_dependencies.sh -p ios -a arm64
