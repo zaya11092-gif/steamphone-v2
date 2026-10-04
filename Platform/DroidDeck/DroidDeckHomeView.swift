@@ -23,7 +23,7 @@ import UniformTypeIdentifiers
 /// virtual machine as the hero card and PC streaming as the fast lane.
 struct DroidDeckHomeView: View {
     @EnvironmentObject private var data: UTMData
-    @StateObject private var manager = DroidDeckOSManager()
+    @StateObject private var manager = SteamPhoneOSManager()
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var showStreaming = false

@@ -34,7 +34,7 @@ struct GPUBridgeDiagnosticsView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     if model.initialized {
-                        GPUBridgeMetalView(model: model)
+                        GPUBridgeMetalCanvas(model: model)
                             .frame(height: 320)
                             .cornerRadius(16)
                             .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.1)))
@@ -322,4 +322,17 @@ extension GPUBridgeMetalView: MTKViewDelegate {
         guard let drawable = currentDrawable else { return }
         diagnosticsModel?.renderFrame(drawable: drawable)
     }
+}
+
+/// SwiftUI wrapper: GPUBridgeMetalView is a UIView (MTKView subclass);
+/// without this, `.frame` resolves to UIKit's frame property, not the
+/// SwiftUI modifier.
+struct GPUBridgeMetalCanvas: UIViewRepresentable {
+    let model: GPUBridgeDiagnosticsModel
+
+    func makeUIView(context: Context) -> GPUBridgeMetalView {
+        GPUBridgeMetalView(model: model)
+    }
+
+    func updateUIView(_ uiView: GPUBridgeMetalView, context: Context) {}
 }
