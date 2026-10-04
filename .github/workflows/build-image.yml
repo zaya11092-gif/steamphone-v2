@@ -34,6 +34,9 @@ jobs:
       - name: Build image
         run: |
           sudo env BUILD_MESA="${BUILD_MESA}" MESA_REF="${MESA_REF:-}" ./image/build-image.sh "$IMAGE_VERSION"
+      - name: Normalize output permissions (image build runs as root)
+        run: |
+          sudo chown -R $USER:$USER image/out
       - name: Checksum
         run: |
           cd image/out && sha256sum *.qcow2 > SHA256SUMS && cat SHA256SUMS
