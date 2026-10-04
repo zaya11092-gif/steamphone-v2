@@ -9,7 +9,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo "==> Installing kernel + GRUB (arm64)"
 apt-get update
 apt-get install -y --no-install-recommends \
-    linux-image-arm64 grub-efi-arm64 grub2-common
+    linux-image-generic grub-efi-arm64 grub2-common
 
 echo "==> GRUB to ESP"
 grub-install --target=arm64-efi --efi-directory=/boot/efi \
