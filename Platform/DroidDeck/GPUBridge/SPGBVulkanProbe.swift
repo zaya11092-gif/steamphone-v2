@@ -18,6 +18,15 @@
 
 import Foundation
 
+struct SPGBProbeResult {
+    let apiVersion: String
+    let deviceName: String
+    let driverVersion: String
+    let queueFamilyCount: UInt32
+    let memoryTypeCount: UInt32
+    let graphicsQueue: Bool
+}
+
 #if canImport(Vulkan)
 import Vulkan
 
@@ -29,15 +38,6 @@ import Vulkan
 /// Note on the C API surface: modern Vulkan headers expose version helpers
 /// as static inline functions (VK_MAKE_API_VERSION, VK_VERSION_MAJOR…),
 /// which import into Swift; function-like macros do not, so we avoid them.
-struct SPGBProbeResult {
-    let apiVersion: String
-    let deviceName: String
-    let driverVersion: String
-    let queueFamilyCount: UInt32
-    let memoryTypeCount: UInt32
-    let graphicsQueue: Bool
-}
-
 enum SPGBVulkanProbe {
     static var isAvailable: Bool { true }
 

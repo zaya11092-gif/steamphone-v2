@@ -216,14 +216,15 @@ private extension Data {
     func readLE<T: FixedWidthInteger>(_ type: T.Type, at index: Index) -> T? {
         let byteCount = MemoryLayout<T>.size
         guard index + byteCount <= endIndex else { return nil }
-        // Data storage is contiguous from startIndex; use relative offsets.
+        // Data storage is contiguous from startIndex; assemble explicitly
+        // (portable across host endianness, no unsafe-buffer ambiguity).
         let chunk = Array(self[index..<(index + byteCount)])
         guard chunk.count == byteCount else { return nil }
         var value = T.zero
-        withUnsafeMutableBytes(of: &value) { dst in
-            dst.copyBytes(from: chunk)
+        for (offset, byte) in chunk.enumerated() {
+            value |= T(truncatingIfNeeded: byte) << (8 * offset)
         }
-        return T(littleEndian: value)
+        return value
     }
 
     func floatLE(at index: Index) -> Float32? {
