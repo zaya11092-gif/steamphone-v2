@@ -22,7 +22,7 @@ apt-get update
 apt-get install -y --no-install-recommends \
     build-essential meson ninja-build pkg-config python3-mako python3-yaml \
     bison flex libexpat1-dev zlib1g-dev libzstd-dev libllvm17 llvm-17-dev \
-    libwayland-dev wayland-protocols wayland-egl-backend-dev libdrm-dev \
+    libwayland-dev wayland-protocols libwayland-egl-backend-dev libdrm-dev \
     libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev \
     libxcb-present-dev libxshmfence-dev libxxf86vm-dev \
     git ca-certificates
