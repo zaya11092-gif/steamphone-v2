@@ -83,8 +83,10 @@ mkdir -p "$WORK_DIR/mnt/boot/efi"
 mount "${LOOPDEV}p1" "$WORK_DIR/mnt/boot/efi"
 
 echo "==> Importing container rootfs into the image"
-# docker export flattens the committed container filesystem into the root fs.
-docker export droiddeck-rootfs:tmp | tar -C "$WORK_DIR/mnt" -xpf -
+# docker export works on containers only: create one from the committed image.
+IMPORT_CID="$(docker create droiddeck-rootfs:tmp)"
+docker export "$IMPORT_CID" | tar -C "$WORK_DIR/mnt" -xpf -
+docker rm "$IMPORT_CID" >/dev/null
 
 echo "==> Installing kernel + bootloader into the image (chroot via qemu)"
 mount --bind /dev "$WORK_DIR/mnt/dev"
