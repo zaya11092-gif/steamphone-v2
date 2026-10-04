@@ -74,7 +74,7 @@ docker rm droiddeck-build
 
 echo "==> Loop-mounting image partitions"
 LOOPDEV=$(losetup --find --show -P "$RAW_IMAGE")
-trap 'umount -R "$WORK_DIR/mnt" 2>/dev/null || true; losetup -d "$LOOPDEV" 2>/dev/null || true' EXIT
+trap 'umount "$WORK_DIR/mnt/droiddeck" 2>/dev/null; umount -R "$WORK_DIR/mnt" 2>/dev/null || true; losetup -d "$LOOPDEV" 2>/dev/null || true' EXIT
 mkfs.fat -F32 -n ESP "${LOOPDEV}p1"
 mkfs.ext4 -L root "${LOOPDEV}p2"
 mkdir -p "$WORK_DIR/mnt"
@@ -92,10 +92,14 @@ echo "==> Installing kernel + bootloader into the image (chroot via qemu)"
 mount --bind /dev "$WORK_DIR/mnt/dev"
 mount --bind /proc "$WORK_DIR/mnt/proc"
 mount --bind /sys "$WORK_DIR/mnt/sys"
+# The install script lives on the host; bind it into the chroot.
+mkdir -p "$WORK_DIR/mnt/droiddeck"
+mount --bind "$SCRIPT_DIR" "$WORK_DIR/mnt/droiddeck"
 cp /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/" 2>/dev/null || \
     apt-get install -y qemu-user-static && cp /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/"
 chroot "$WORK_DIR/mnt" /bin/bash /droiddeck/image-install-kernel.sh
 rm -f "$WORK_DIR/mnt/usr/bin/qemu-aarch64-static"
+umount "$WORK_DIR/mnt/droiddeck"
 umount "$WORK_DIR/mnt/dev" "$WORK_DIR/mnt/proc" "$WORK_DIR/mnt/sys"
 
 echo "==> Syncing and detaching"
