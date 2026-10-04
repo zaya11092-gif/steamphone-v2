@@ -39,7 +39,12 @@ jobs:
       - name: Setup Xcode
         shell: bash
         run: |
-          [[ "$(xcode-select -p)" == "${{ env.BUILD_XCODE_PATH }}"* ]] || sudo xcode-select -s "${{ env.BUILD_XCODE_PATH }}"
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          echo "available Xcodes:"; ls -d /Applications/Xcode*.app 2>/dev/null || true
+          if [ -n "$NEWEST_XCODE" ]; then
+            sudo xcode-select -s "$NEWEST_XCODE"
+          fi
+          xcodebuild -version
           echo "DEVELOPER_DIR=$(xcode-select -p)" >> $GITHUB_ENV
       - name: Check Cache
         id: cache-sysroot
@@ -107,7 +112,12 @@ jobs:
       - name: Setup Xcode
         shell: bash
         run: |
-          [[ "$(xcode-select -p)" == "${{ env.BUILD_XCODE_PATH }}"* ]] || sudo xcode-select -s "${{ env.BUILD_XCODE_PATH }}"
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          echo "available Xcodes:"; ls -d /Applications/Xcode*.app 2>/dev/null || true
+          if [ -n "$NEWEST_XCODE" ]; then
+            sudo xcode-select -s "$NEWEST_XCODE"
+          fi
+          xcodebuild -version
           echo "DEVELOPER_DIR=$(xcode-select -p)" >> $GITHUB_ENV
       - name: Build
         run: |
