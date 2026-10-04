@@ -109,7 +109,7 @@ enum SPGBStreamEncoder {
         data.appendLE(t.id)
         data.appendLE(t.x); data.appendLE(t.y); data.appendLE(t.w); data.appendLE(t.h)
         data.appendLE(t.stride)
-        data.append(t.pixels)
+        data.append(contentsOf: t.pixels)
         return SPGBCommand(.transfer2D, payload: data)
     }
 
@@ -121,7 +121,7 @@ enum SPGBStreamEncoder {
 
     static func clear(_ c: SPGBClear) -> SPGBCommand {
         var data = Data()
-        data.appendLE(c.r); data.appendLE(c.g); data.appendLE(c.b); data.appendLE(c.a)
+        data.appendLEFloat(c.r); data.appendLEFloat(c.g); data.appendLEFloat(c.b); data.appendLEFloat(c.a)
         return SPGBCommand(.clear, payload: data)
     }
 
@@ -134,9 +134,9 @@ enum SPGBStreamEncoder {
 
     static func drawQuad(_ q: SPGBDrawQuad) -> SPGBCommand {
         var data = Data()
-        data.appendLE(q.x); data.appendLE(q.y); data.appendLE(q.w); data.appendLE(q.h)
-        data.appendLE(q.u0); data.appendLE(q.v0); data.appendLE(q.u1); data.appendLE(q.v1)
-        data.appendLE(q.alpha)
+        data.appendLEFloat(q.x); data.appendLEFloat(q.y); data.appendLEFloat(q.w); data.appendLEFloat(q.h)
+        data.appendLEFloat(q.u0); data.appendLEFloat(q.v0); data.appendLEFloat(q.u1); data.appendLEFloat(q.v1)
+        data.appendLEFloat(q.alpha)
         return SPGBCommand(.drawQuad, payload: data)
     }
 
@@ -209,17 +209,21 @@ private extension Data {
         }
     }
 
+    mutating func appendLEFloat(_ value: Float32) {
+        appendLE(value.bitPattern)
+    }
+
     func readLE<T: FixedWidthInteger>(_ type: T.Type, at index: Index) -> T? {
         let byteCount = MemoryLayout<T>.size
         guard index + byteCount <= endIndex else { return nil }
         // Data storage is contiguous from startIndex; use relative offsets.
-        let base = startIndex
-        let relStart = index - base
-        return withUnsafeBytes { raw in
-            guard raw.count >= relStart + byteCount else { return nil }
-            let slice = raw.prefix(relStart + byteCount).suffix(byteCount)
-            return T(littleEndian: slice.loadUnaligned(as: T.self))
+        let chunk = Array(self[index..<(index + byteCount)])
+        guard chunk.count == byteCount else { return nil }
+        var value = T.zero
+        withUnsafeMutableBytes(of: &value) { dst in
+            dst.copyBytes(from: chunk)
         }
+        return T(littleEndian: value)
     }
 
     func floatLE(at index: Index) -> Float32? {

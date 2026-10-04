@@ -94,12 +94,12 @@ final class SPGBGuestSimulator {
         for i in 0..<frame.quadsPerFrame {
             let col = i % cols
             let row = i / cols
-            let wobble = sin(Double(phase * 2.0 * .pi + Double(i) * 0.35))
-            let inset = 8.0 + CGFloat(10.0 + 6.0 * wobble)
-            let x = Float(CGFloat(col) * cellW + inset)
-            let y = Float(CGFloat(row) * cellH + inset)
-            let w = cellW - Float(inset) * 2
-            let h = cellH - Float(inset) * 2
+            let wobble = Float(sin(Double(phase) * 2.0 * .pi + Double(i) * 0.35))
+            let inset = 18.0 + 6.0 * wobble
+            let x = Float(col) * cellW + inset
+            let y = Float(row) * cellH + inset
+            let w = cellW - inset * 2
+            let h = cellH - inset * 2
             commands.append(SPGBStreamEncoder.drawQuad(SPGBDrawQuad(
                 x: x, y: y, w: max(w, 4), h: max(h, 4),
                 u0: 0, v0: 0, u1: 1, v1: 1,

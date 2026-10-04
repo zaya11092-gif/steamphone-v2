@@ -266,8 +266,8 @@ final class SPGBHostRenderer {
         } catch {
             return
         }
-        encoder.setFragmentSamplerState(samplerState, at: 0)
-        encoder.setFragmentTexture(texture, at: 0)
+        encoder.setFragmentSamplerState(samplerState, index: 0)
+        encoder.setFragmentTexture(texture, index: 0)
 
         // Pixel rect -> clip space for the destination texture.
         let dw = Float(destination.width)

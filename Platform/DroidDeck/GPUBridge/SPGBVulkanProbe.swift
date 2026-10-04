@@ -29,19 +29,19 @@ import Vulkan
 /// Note on the C API surface: modern Vulkan headers expose version helpers
 /// as static inline functions (VK_MAKE_API_VERSION, VK_VERSION_MAJOR…),
 /// which import into Swift; function-like macros do not, so we avoid them.
-enum SPGBVulkanProbe {
-    struct Result {
-        let apiVersion: String
-        let deviceName: String
-        let driverVersion: String
-        let queueFamilyCount: UInt32
-        let memoryTypeCount: UInt32
-        let graphicsQueue: Bool
-    }
+struct SPGBProbeResult {
+    let apiVersion: String
+    let deviceName: String
+    let driverVersion: String
+    let queueFamilyCount: UInt32
+    let memoryTypeCount: UInt32
+    let graphicsQueue: Bool
+}
 
+enum SPGBVulkanProbe {
     static var isAvailable: Bool { true }
 
-    static func run() throws -> Result {
+    static func run() throws -> SPGBProbeResult {
         var appInfo = VkApplicationInfo()
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO
         appInfo.pApplicationName = "SteamPhone GPU Bridge"
@@ -116,7 +116,7 @@ enum SPGBVulkanProbe {
         guard queue != nil else { throw SPGBError.pipelineFailure("no VkQueue") }
         vkDeviceWaitIdle(device)
 
-        return Result(
+        return SPGBProbeResult(
             apiVersion: versionString(properties.apiVersion),
             deviceName: String(cString: properties.deviceName),
             driverVersion: String(format: "0x%08x", properties.driverVersion),
@@ -162,7 +162,7 @@ enum SPGBVulkanProbe {
 /// Compile-time fallback when MoltenVK is not linked (default builds).
 enum SPGBVulkanProbe {
     static var isAvailable: Bool { false }
-    static func run() throws -> Never {
+    static func run() throws -> SPGBProbeResult {
         throw SPGBError.pipelineFailure("Vulkan unavailable: build the MoltenVK profile (gpu-rd/moltenvk/README.md)")
     }
 }
