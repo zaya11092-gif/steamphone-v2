@@ -5106,7 +5106,7 @@
 
 /* Begin XCBuildConfiguration section */
 		8401FD6F269BE9C600265F0D /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "$(LAUNCHER_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_MAC:default=-)";
@@ -5127,7 +5127,7 @@
 			name = Debug;
 		};
 		8401FD70269BE9C600265F0D /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "$(LAUNCHER_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_MAC:default=-)";
@@ -5148,7 +5148,7 @@
 			name = Release;
 		};
 		84A57CBA30641C6800BA5139 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5187,7 +5187,7 @@
 			name = Debug;
 		};
 		84A57CBB30641C6800BA5139 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5224,7 +5224,7 @@
 			name = Release;
 		};
 		84A57D0330641D0000BA5139 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5263,7 +5263,7 @@
 			name = Debug;
 		};
 		84A57D0430641D0000BA5139 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5300,7 +5300,7 @@
 			name = Release;
 		};
 		84E3A8F4293DB37E0024A740 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5320,7 +5320,7 @@
 			name = Debug;
 		};
 		84E3A8F5293DB37E0024A740 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -5339,9 +5339,9 @@
 			name = Release;
 		};
 		CE2D93BC24AD46670059923A /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SteamPhoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(IOS_CODE_SIGN_ENTITLEMENTS)";
@@ -5378,9 +5378,9 @@
 			name = Debug;
 		};
 		CE2D93BD24AD46670059923A /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SteamPhoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(IOS_CODE_SIGN_ENTITLEMENTS)";
@@ -5416,7 +5416,7 @@
 			name = Release;
 		};
 		CE2D952A24AD48BF0059923A /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -5451,7 +5451,7 @@
 			name = Debug;
 		};
 		CE2D952B24AD48BF0059923A /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -5487,7 +5487,7 @@
 			name = Release;
 		};
 		CE550BDD2259479D0063E575 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			baseConfigurationReference = CE50A41F2637BB200050430F /* Build.xcconfig */;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
@@ -5575,7 +5575,7 @@
 			name = Debug;
 		};
 		CE550BDE2259479D0063E575 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			baseConfigurationReference = CE50A41F2637BB200050430F /* Build.xcconfig */;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
@@ -5658,7 +5658,7 @@
 			name = Release;
 		};
 		CE9A353626533A52005077CF /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5684,7 +5684,7 @@
 			name = Debug;
 		};
 		CE9A353726533A52005077CF /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5710,7 +5710,7 @@
 			name = Release;
 		};
 		CEA3EDF830168B9000AAA8E4 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "$(RENDERER_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_MAC:default=-)";
@@ -5730,7 +5730,7 @@
 			name = Debug;
 		};
 		CEA3EDF930168B9000AAA8E4 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "$(RENDERER_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_MAC:default=-)";
@@ -5750,9 +5750,9 @@
 			name = Release;
 		};
 		CEA45FB7263519B5002FA97D /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SteamPhoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(IOS_CODE_SIGN_ENTITLEMENTS)";
@@ -5790,9 +5790,9 @@
 			name = Debug;
 		};
 		CEA45FB8263519B5002FA97D /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SteamPhoneIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(IOS_CODE_SIGN_ENTITLEMENTS)";
@@ -5829,7 +5829,7 @@
 			name = Release;
 		};
 		CEBDA1E724D8BDDB0010B5EC /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(HELPER_CODE_SIGN_ENTITLEMENTS)";
@@ -5850,7 +5850,7 @@
 			name = Debug;
 		};
 		CEBDA1E824D8BDDB0010B5EC /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(HELPER_CODE_SIGN_ENTITLEMENTS)";
@@ -5871,7 +5871,7 @@
 			name = Release;
 		};
 		CEF7F6D12AEEDCC400E34952 /* Debug */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Remote";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor-Remote";
@@ -5907,7 +5907,7 @@
 			name = Debug;
 		};
 		CEF7F6D22AEEDCC400E34952 /* Release */ = {
-			isa = XCBuildConfiguration;
+				isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Remote";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor-Remote";

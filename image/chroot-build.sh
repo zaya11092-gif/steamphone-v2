@@ -19,7 +19,7 @@ apt-get install -y --no-install-recommends \
     mesa-utils libgl1-mesa-dri mesa-vulkan-drivers vulkan-tools \
     cage seatd xterm fonts-dejavu-core \
     pipewire pipewire-audio wireplumber libspa-0.2-modules \
-    dbus systemd-sysv networkmanager \
+    dbus systemd-sysv network-manager \
     polkitd pkexec sudo adduser \
     software-properties-common
 

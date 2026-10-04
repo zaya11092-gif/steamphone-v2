@@ -37,6 +37,10 @@ jobs:
       - name: Checksum
         run: |
           cd image/out && sha256sum *.qcow2 > SHA256SUMS && cat SHA256SUMS
+      - name: Stable-name copy (the app downloads releases/latest/download/SteamPhoneOS-arm64.qcow2)
+        run: |
+          cp image/out/SteamPhoneOS-*-arm64.qcow2 image/out/SteamPhoneOS-arm64.qcow2
+          cd image/out && sha256sum SteamPhoneOS-arm64.qcow2 >> SHA256SUMS && cat SHA256SUMS
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:

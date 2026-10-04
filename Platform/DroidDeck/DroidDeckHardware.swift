@@ -64,7 +64,7 @@ enum DroidDeckBuildConfig {
 
     /// Version of the guest image this build of the app expects.
     /// Bump when the QEMU arguments or image layout change incompatibly.
-    static let imageVersion = "0.2.0"
+    static let imageVersion = "0.5.5"
 
     /// File name used for the downloaded (uncompressed) disk image.
     static let imageFileName = "SteamPhoneOS-\(imageVersion).qcow2"
@@ -73,7 +73,8 @@ enum DroidDeckBuildConfig {
     /// GitHub release; overridable for testing via UserDefaults key
     /// "DroidDeckImageURL" (e.g. pointing at a CI artifact).
     static var imageDownloadURL: URL {
-        let fallback = "https://github.com/zaya11092-gif/steamphone-v2/releases/download/v\(imageVersion)/SteamPhoneOS-\(imageVersion)-arm64.qcow2"
+        // Stable-name asset attached to the latest release by the image workflow.
+        let fallback = "https://github.com/zaya11092-gif/steamphone-v2/releases/latest/download/SteamPhoneOS-arm64.qcow2"
         if let override = UserDefaults.standard.string(forKey: "DroidDeckImageURL"), let url = URL(string: override) {
             return url
         }

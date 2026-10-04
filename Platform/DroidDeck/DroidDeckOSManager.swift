@@ -203,6 +203,18 @@ final class SteamPhoneOSManager: ObservableObject {
 
     private func stageDownloadedFile(at tmpURL: URL) {
         do {
+            // URLSession happily "completes" a 404/error page; reject anything
+            // implausibly small for a multi-GB disk image before staging it.
+            let minPlausibleSize: Int64 = 100 * 1024 * 1024
+            let downloadedSize = (try? FileManager.default.attributesOfItem(atPath: tmpURL.path)[.size] as? Int64) ?? 0
+            if downloadedSize < minPlausibleSize {
+                try? FileManager.default.removeItem(at: tmpURL)
+                phase = .failed("The server did not return the SteamPhoneOS image (got only \(downloadedSize / 1_000_000) MB). The image may not be published yet — use \"Import image from Files\" or update the app.")
+                return
+            }
+            // iOS does not pre-create Application Support.
+            let supportDir = downloadDestination.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: supportDir, withIntermediateDirectories: true)
             try? FileManager.default.removeItem(at: downloadDestination)
             try FileManager.default.moveItem(at: tmpURL, to: downloadDestination)
             guard let data else { return }
