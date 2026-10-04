@@ -20,8 +20,14 @@ apt-get install -y --no-install-recommends \
     cage seatd xterm fonts-dejavu-core \
     pipewire pipewire-audio wireplumber libspa-0.2-modules \
     dbus systemd-sysv network-manager \
-    polkitd pkexec sudo adduser \
-    software-properties-common
+    polkitd pkexec sudo adduser
+
+# Optional: only needed for the FEX PPA fallback. Its python3-* dependency
+# postinsts are flaky under qemu-user, so it must not fail the build.
+apt-get install -y --no-install-recommends software-properties-common || {
+    echo "WARNING: software-properties-common failed under qemu; continuing without PPA support"
+    dpkg --configure -a || true
+}
 
 echo "==> FEX-EMU (x86_64 emulation, the DroidDeck recipe)"
 # Preferred: the FEX builds DroidDeck ships (with host thunks for
