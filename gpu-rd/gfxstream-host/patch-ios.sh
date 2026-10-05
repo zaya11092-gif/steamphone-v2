@@ -201,3 +201,23 @@ if cmake.exists():
     cmake.write_text(text, encoding='utf-8')
     print(f'dropped {changed} GL-only libs from backend link on iOS')
 PYLINK
+
+# gl-server: don't even build it on iOS (backend no longer links it; its
+# sources include the skipped GLES dispatch headers).
+python3 - "$SRC" <<'PYGLSRV'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'gl' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    needle = 'add_library(gfxstream-gl-server'
+    if needle in text and 'SPGB_IOS_SKIP_GL_SERVER' not in text:
+        text = text.replace(needle,
+            'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\n' + needle)
+        # close the conditional after the target's link block
+        text += '\nif(CMAKE_SYSTEM_NAME STREQUAL iOS)\n# SPGB_IOS_SKIP_GL_SERVER: target skipped above\nendif()\n'
+        cmake.write_text(text, encoding='utf-8')
+        print('gl-server build guarded on iOS (SPGB_IOS_SKIP_GL_SERVER)')
+PYGLSRV
