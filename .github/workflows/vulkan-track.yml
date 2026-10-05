@@ -133,11 +133,13 @@ jobs:
           if [[ "${{ matrix.target.name }}" == ios* ]]; then
             EXTRA="-DCMAKE_CXX_FLAGS=-I$PWD/gpu-rd/moltenvk/module/vulkan"
           fi
+          set -o pipefail
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \
             ${{ matrix.target.cmake_args }} \
             $EXTRA \
             -DBUILD_TESTING=OFF \
-            -DCMAKE_INSTALL_PREFIX=$PWD/gfxstream-host/prefix-${{ matrix.target.name }}
+            -DCMAKE_INSTALL_PREFIX=$PWD/gfxstream-host/prefix-${{ matrix.target.name }} \
+            2>&1 | tee gpu-rd/gfxstream-host/configure-${{ matrix.target.name }}.log
       - name: Build + install host renderer
         run: |
           set -o pipefail
@@ -168,6 +170,7 @@ jobs:
           path: |
             gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
             gpu-rd/gfxstream-host/build-${{ matrix.target.name }}.log
+            gpu-rd/gfxstream-host/configure-${{ matrix.target.name }}.log
 
   qemu-rutabaga-spike:
     name: QEMU virtio-gpu-rutabaga (spike, gate data)
@@ -222,7 +225,14 @@ jobs:
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
           export PREFIX="$PWD/sysroot-ios-arm64"
           export SPGB_CHAIN_PREFIX="$PREFIX/spgb-chain"
-          bash gpu-rd/build-3d-chain.sh
+          set -o pipefail
+          bash gpu-rd/build-3d-chain.sh 2>&1 | tee chain.log
+      - name: Upload chain log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysroot-3d-chain-log
+          path: chain.log
       - name: Rebuild only QEMU with the chain (replaces its libs in the sysroot)
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
