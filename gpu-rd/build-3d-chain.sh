@@ -80,9 +80,37 @@ if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ] && [ -f "$PC_DIR/gfxstream_backend.
 fi
 export PKG_CONFIG_PATH="$PC_DIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 cd "$WORK/rutabaga_gfx"
+
+# Cross file when targeting iOS from macOS: meson sanity-checks the C compiler
+# by RUNNING its output, which cannot work for an iOS target — the cross file
+# tells meson the host machine differs so it skips the sanity run.
+CROSS_ARGS=()
+if [ "${RUTABAGA_TARGET:-aarch64-apple-ios}" = "aarch64-apple-ios" ] && [ "$(uname)" = "Darwin" ]; then
+    IOS_SDK="$(xcrun --show-sdk-path --sdk iphoneos)"
+    cat > "$WORK/ios-cross.txt" <<EOF
+[binaries]
+c = ['clang', '-target', 'arm64-apple-ios15.0', '-isysroot', '$IOS_SDK']
+cpp = ['clang++', '-target', 'arm64-apple-ios15.0', '-isysroot', '$IOS_SDK']
+rust = ['rustc', '--target', 'aarch64-apple-ios', '-C', 'link-arg=-isysroot', '-C', 'link-arg=$IOS_SDK']
+pkg-config = 'pkg-config'
+
+[host_machine]
+system = 'darwin'
+cpu_family = 'aarch64'
+cpu = 'arm64'
+endian = 'little'
+
+[properties]
+needs_exe_wrapper = true
+EOF
+    CROSS_ARGS=(--cross-file "$WORK/ios-cross.txt")
+    echo "==> [3D chain] using iOS cross file (needs_exe_wrapper=true)"
+fi
+
 meson setup build-rutabaga \
     --buildtype release \
     --prefix "$CHAIN_PREFIX" \
+    "${CROSS_ARGS[@]}" \
     -Dffi=true -Dkumquat=false -Dbuild-tests=false \
     -Dfeatures="$RUTABAGA_FEATURES" \
     || { echo "GATE DATA: rutabaga meson setup failed"; exit 4; }

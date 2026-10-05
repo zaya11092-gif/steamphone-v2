@@ -12,9 +12,24 @@ QEMU_SRC="${QEMU_SRC:-https://github.com/Droid-Deck/DroidDeck/releases/download/
 export DEBIAN_FRONTEND=noninteractive
 export LC_ALL=C
 
+# python3-* package postinsts are flaky under qemu-user (they abort
+# intermittently, cascading through dpkg). Retry with an intervening
+# dpkg --configure -a, which usually unblocks the next attempt.
+apt_install_retry() {
+    for attempt in 1 2 3; do
+        if apt-get install -y --no-install-recommends "$@"; then
+            return 0
+        fi
+        echo "==> apt install failed (attempt $attempt); configuring pending packages and retrying"
+        dpkg --configure -a || true
+        apt-get -f install -y || true
+    done
+    return 1
+}
+
 echo "==> Base packages"
 apt-get update
-apt-get install -y --no-install-recommends \
+apt_install_retry \
     ca-certificates curl gnupg xz-utils zstd ca-certificates \
     mesa-utils libgl1-mesa-dri mesa-vulkan-drivers vulkan-tools \
     cage seatd xterm fonts-dejavu-core \
