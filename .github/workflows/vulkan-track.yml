@@ -140,8 +140,9 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=$PWD/gfxstream-host/prefix-${{ matrix.target.name }}
       - name: Build + install host renderer
         run: |
-          cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }} --parallel 4 || \
-          cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }}
+          set -o pipefail
+          (cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }} --parallel 4 || \
+          cmake --build gpu-rd/gfxstream-host/build/${{ matrix.target.name }}) 2>&1 | tee gpu-rd/gfxstream-host/build-${{ matrix.target.name }}.log
           cmake --install gpu-rd/gfxstream-host/build/${{ matrix.target.name }} || true
           # Write the pc file rutabaga's meson consumes.
           P=gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
@@ -159,12 +160,14 @@ jobs:
           Cflags: -I\${includedir}
           EOF
           find "$P" -name '*.a' -o -name '*.pc' | head -20
-      - name: Upload host prefix
+      - name: Upload host prefix + build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gfxstream-host-${{ matrix.target.name }}
-          path: gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
+          path: |
+            gpu-rd/gfxstream-host/prefix-${{ matrix.target.name }}
+            gpu-rd/gfxstream-host/build-${{ matrix.target.name }}.log
 
   qemu-rutabaga-spike:
     name: QEMU virtio-gpu-rutabaga (spike, gate data)
