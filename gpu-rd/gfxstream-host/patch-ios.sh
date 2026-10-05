@@ -172,7 +172,10 @@ if top.exists():
 gl = src / 'host' / 'gl' / 'CMakeLists.txt'
 if gl.exists():
     text = gl.read_text(encoding='utf-8')
-    for sub in ('OpenGLESDispatch', 'glestranslator', 'glsnapshot',
+    # OpenGLESDispatch MUST build on iOS too: the backend's headers include
+    # its dispatch headers unconditionally (emulation_gl.h). It is
+    # dlopen-based at runtime, so it compiles without a host GL present.
+    for sub in ('glestranslator', 'glsnapshot',
                 'gles1_dec', 'gles2_dec'):
         text = text.replace(f'add_subdirectory({sub})',
             f'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\nadd_subdirectory({sub})\nendif()')
