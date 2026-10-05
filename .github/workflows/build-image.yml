@@ -21,7 +21,9 @@ env:
 jobs:
   build-image:
     name: Build guest disk image
-    runs-on: ubuntu-latest
+    # Native arm64 runner: the whole build (container, apt, Mesa) runs without
+    # qemu-user emulation - the emulated gcc segfaults killed 3 Mesa builds.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
       - name: Checkout
