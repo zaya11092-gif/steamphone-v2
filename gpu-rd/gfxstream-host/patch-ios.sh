@@ -194,9 +194,10 @@ if cmake.exists():
     for lib in ('gfxstream-gl-server', 'GLES_CM_translator_static', 'renderControl_dec'):
         tgt = f'        {lib}\n'
         if tgt in text:
+            nl = chr(10)
             text = text.replace(tgt,
-                '        if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + tgt +
-                '        endif()\n')
+                '        if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl + tgt +
+                '        endif()' + nl)
             changed += 1
     cmake.write_text(text, encoding='utf-8')
     print(f'dropped {changed} GL-only libs from backend link on iOS')
