@@ -218,10 +218,9 @@ if cmake.exists():
         nl = chr(10)
         text = text.replace(needle,
             'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl + needle)
-        # close the conditional after the target's link block
-        text += (nl + 'if(CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl +
-                 '# SPGB_IOS_SKIP_GL_SERVER: target skipped above' + nl +
-                 'endif()' + nl)
+        # close the gl-server guard conditional itself
+        text += (nl + 'endif()' + nl +
+                 '# SPGB_IOS_SKIP_GL_SERVER: gl-server target skipped on iOS' + nl)
         cmake.write_text(text, encoding='utf-8')
         print('gl-server build guarded on iOS (SPGB_IOS_SKIP_GL_SERVER)')
 PYGLSRV
