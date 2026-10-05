@@ -214,10 +214,13 @@ if cmake.exists():
     text = cmake.read_text(encoding='utf-8')
     needle = 'add_library(gfxstream-gl-server'
     if needle in text and 'SPGB_IOS_SKIP_GL_SERVER' not in text:
+        nl = chr(10)
         text = text.replace(needle,
-            'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\n' + needle)
+            'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl + needle)
         # close the conditional after the target's link block
-        text += '\nif(CMAKE_SYSTEM_NAME STREQUAL iOS)\n# SPGB_IOS_SKIP_GL_SERVER: target skipped above\nendif()\n'
+        text += (nl + 'if(CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl +
+                 '# SPGB_IOS_SKIP_GL_SERVER: target skipped above' + nl +
+                 'endif()' + nl)
         cmake.write_text(text, encoding='utf-8')
         print('gl-server build guarded on iOS (SPGB_IOS_SKIP_GL_SERVER)')
 PYGLSRV
