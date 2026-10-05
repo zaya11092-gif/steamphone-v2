@@ -1,0 +1,108 @@
+name: Experimental Release (3D track)
+on:
+  push:
+    tags:
+      - 'v*-3d*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.6.0-3d-alpha1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-experimental:
+    name: Build 3D engine IPA + probe IPA
+    runs-on: macos-26
+    timeout-minutes: 150
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ---- 3D engine sysroot (chain: gfxstream -> rutabaga -> QEMU) ----
+      - name: Build sysroot with 3D chain
+        env:
+          RUTABAGA_TRACK: '1'
+          SPGB_SKIP_GFXSTREAM: 'false'   # experimental release attempts the full backend
+        run: |
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
+          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
+          pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
+          ./scripts/build_dependencies.sh -p ios -a arm64 || {
+            echo "FULL 3D chain failed; falling back to plumbing-only build"
+            ./scripts/build_dependencies.sh -p ios -a arm64
+          }
+
+      - name: Verify rutabaga device in QEMU
+        run: |
+          SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
+          echo "rutabaga symbols in QEMU: $SYMS"
+          echo "RUTABAGA_SYMS=$SYMS" >> $GITHUB_ENV
+
+      - name: Link MoltenVK into project
+        run: python3 scripts/link_moltenvk.py || echo "MoltenVK link skipped"
+
+      - name: Build 3D engine IPA
+        run: |
+          ./scripts/build_utm.sh -k iphoneos -s iOS -a arm64 -o UTM
+          tar -acf UTM-3D.xcarchive.tgz UTM.xcarchive
+
+      - name: Package 3D IPA
+        run: |
+          brew install ldid
+          tar -xf UTM-3D.xcarchive.tgz
+          ./scripts/package.sh ipa UTM.xcarchive .
+          mv UTM.ipa SteamPhone-3D-experimental.ipa
+
+      # ---- Vulkan probe IPA (normal engine + MoltenVK, for the G0 probe) ----
+      - name: Build probe IPA (SE engine + MoltenVK)
+        run: |
+          ./scripts/build_utm.sh -k iphoneos -s iOS-SE -a arm64 -o UTMSE
+          tar -acf UTMSE-3D.xcarchive.tgz UTMSE.xcarchive
+      - name: Package probe IPA
+        run: |
+          tar -xf UTMSE-3D.xcarchive.tgz
+          ./scripts/package.sh ipa-se UTMSE.xcarchive .
+          mv "UTM SE.ipa" SteamPhone-SE-vulkan-probe.ipa
+
+      - name: Checksums
+        run: |
+          sha256sum SteamPhone-3D-experimental.ipa SteamPhone-SE-vulkan-probe.ipa > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: ${{ github.event.inputs.tag || github.ref_name }} (3D experimental)
+          prerelease: true
+          body_path: SHA256SUMS.txt
+          body: |
+            ## SteamPhone 3D experimental
+
+            **Experimental.** This build carries the 3D paravirtualization track:
+            gfxstream host (on MoltenVK/Metal) -> rutabaga -> QEMU
+            `virtio-gpu-rutabaga` device, plus the on-device Vulkan probe
+            (GPU Bridge diagnostics screen) and a Settings toggle
+            (*Experimental GPU bridge (rutabaga)*) that swaps the VM's display
+            device once the guest side is ready.
+
+            - `SteamPhone-3D-experimental.ipa` — JIT engine with the 3D chain
+            - `SteamPhone-SE-vulkan-probe.ipa` — SE engine + MoltenVK probe
+
+            Expect: the VM boots exactly as the stable build; the 3D device is
+            present but the guest driver is still landing. Nothing here should
+            be slower or more broken than stable — it is a superset build for
+            testing the bridge on real hardware.
+
+            Not affiliated with Valve or Droid-Deck. GPL-3.0.
+          files: |
+            SteamPhone-3D-experimental.ipa
+            SteamPhone-SE-vulkan-probe.ipa
+            SHA256SUMS.txt

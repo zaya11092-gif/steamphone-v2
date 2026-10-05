@@ -62,6 +62,16 @@ enum DroidDeckVMBuilder {
             }
         }
 
+        // 3D track (gpu-rd/3d-plan.md): when the engine build has the
+        // rutabaga device compiled in, a debug toggle swaps the display for
+        // virtio-gpu-rutabaga. Requires a SteamPhone-3D build; the shipped
+        // QEMU silently errors on an unknown device otherwise, so this stays
+        // opt-in via UserDefaults.
+        if UserDefaults.standard.bool(forKey: "DroidDeckUseRutabagaGPU") {
+            config.qemu.additionalArguments.append(QEMUArgument("-device"))
+            config.qemu.additionalArguments.append(QEMUArgument("virtio-gpu-rutabaga-pci"))
+        }
+
         // Boot drive with the downloaded image.
         var drive = UTMQemuConfigurationDrive(forArchitecture: .aarch64, target: QEMUTarget_aarch64.virt)
         drive.imageURL = imageURL

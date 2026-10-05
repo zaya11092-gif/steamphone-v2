@@ -77,6 +77,23 @@ struct DroidDeckSettingsView: View {
                     LabeledRow(label: "Image version", value: DroidDeckBuildConfig.imageVersion)
                     LabeledRow(label: "Download URL", value: DroidDeckBuildConfig.imageDownloadURL.absoluteString)
                 }
+                Section {
+                    Toggle(isOn: .init(
+                        get: { UserDefaults.standard.bool(forKey: "DroidDeckUseRutabagaGPU") },
+                        set: { UserDefaults.standard.set($0, forKey: "DroidDeckUseRutabagaGPU") }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Experimental GPU bridge (rutabaga)")
+                            Text("Only for SteamPhone-3D engine builds; ignored elsewhere.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("3D acceleration")
+                } footer: {
+                    Text("Applies on the next VM install. Requires an engine build with virtio-gpu-rutabaga compiled in.")
+                }
                 if let saveError {
                     Section {
                         Text(saveError).foregroundColor(.red)
