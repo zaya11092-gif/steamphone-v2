@@ -104,6 +104,11 @@ rm -f "$WORK_DIR/mnt/usr/bin/qemu-aarch64-static"
 umount "$WORK_DIR/mnt/droiddeck"
 umount "$WORK_DIR/mnt/dev" "$WORK_DIR/mnt/proc" "$WORK_DIR/mnt/sys"
 
+echo "==> Zero-filling free space (deleted package archives defeat qcow2 compression)"
+dd if=/dev/zero of="$WORK_DIR/mnt/zero.fill" bs=1M status=none || true
+rm -f "$WORK_DIR/mnt/zero.fill"
+sync
+
 echo "==> Syncing and detaching"
 umount "$WORK_DIR/mnt/boot/efi" "$WORK_DIR/mnt"
 losetup -d "$LOOPDEV"
