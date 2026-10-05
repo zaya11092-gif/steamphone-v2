@@ -172,7 +172,8 @@ if top.exists():
 gl = src / 'host' / 'gl' / 'CMakeLists.txt'
 if gl.exists():
     text = gl.read_text(encoding='utf-8')
-    for sub in ('glestranslator', 'glsnapshot'):
+    for sub in ('OpenGLESDispatch', 'glestranslator', 'glsnapshot',
+                'gles1_dec', 'gles2_dec'):
         text = text.replace(f'add_subdirectory({sub})',
             f'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\nadd_subdirectory({sub})\nendif()')
     gl.write_text(text, encoding='utf-8')
