@@ -53,7 +53,7 @@ if target.exists():
         "// iOS stub for gfxstream common/base/system-native-mac.mm\n"
         "// (original uses IOKit/AppKit, which do not exist on iOS).\n"
         "#include <cstdint>\n"
-        "#include <foundation/Optional.h>\n"
+        "#include <gfxstream/Optional.h>\n"
         "\n"
         "namespace gfxstream {\n"
         "namespace base {\n"
