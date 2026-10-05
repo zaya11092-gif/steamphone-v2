@@ -179,3 +179,25 @@ if gl.exists():
     gl.write_text(text, encoding='utf-8')
     print('gl/CMakeLists: translator+snapshot skipped on iOS')
 PYGL
+
+# Vulkan-only backend: drop gfxstream-gl-server (and the GLES translator libs)
+# from gfxstream_backend_static's link when HOST_GLES is disabled on iOS.
+python3 - "$SRC" <<'PYLINK'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    changed = 0
+    for lib in ('gfxstream-gl-server', 'GLES_CM_translator_static', 'renderControl_dec'):
+        tgt = f'        {lib}\n'
+        if tgt in text:
+            text = text.replace(tgt,
+                '        if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + tgt +
+                '        endif()\n')
+            changed += 1
+    cmake.write_text(text, encoding='utf-8')
+    print(f'dropped {changed} GL-only libs from backend link on iOS')
+PYLINK
