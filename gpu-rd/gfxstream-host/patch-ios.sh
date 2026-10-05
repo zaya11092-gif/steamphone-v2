@@ -147,3 +147,34 @@ if cmake.exists():
         cmake.write_text(text, encoding='utf-8')
         print('guard testlibs behind non-iOS')
 PYSTUB3
+
+# Host GLES path: desktop-GL-based (glestranslator, mac_native) has no iOS
+# analogue. Define GFXSTREAM_ENABLE_HOST_GLES=0 and skip the GL-only
+# subdirectories; the Vulkan backend (the path games need) stays on.
+python3 - "$SRC" <<'PYGL'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+top = src / 'CMakeLists.txt'
+if top.exists():
+    text = top.read_text(encoding='utf-8')
+    if 'add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)' in text:
+        text = text.replace(
+            'add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)',
+            'if(CMAKE_SYSTEM_NAME STREQUAL iOS)\n'
+            '    add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=0)\n'
+            'else()\n'
+            '    add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)\n'
+            'endif()')
+        top.write_text(text, encoding='utf-8')
+        print('top CMakeLists: HOST_GLES conditional')
+gl = src / 'host' / 'gl' / 'CMakeLists.txt'
+if gl.exists():
+    text = gl.read_text(encoding='utf-8')
+    for sub in ('glestranslator', 'glsnapshot'):
+        text = text.replace(f'add_subdirectory({sub})',
+            f'if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\nadd_subdirectory({sub})\nendif()')
+    gl.write_text(text, encoding='utf-8')
+    print('gl/CMakeLists: translator+snapshot skipped on iOS')
+PYGL
