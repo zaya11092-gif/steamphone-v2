@@ -73,7 +73,9 @@ if [ "$STATUS" -ne 0 ]; then
 fi
 
 echo "==> Compiling (${JOBS} jobs — this is the slow step)"
-ninja -C build -j "$JOBS"
+# qemu-user flakiness: the emulated gcc occasionally segfaults mid-build.
+# ninja resumes from where it stopped, so retry up to 4 times.
+ninja -C build -j "$JOBS" ||   ninja -C build -j "$JOBS" ||   ninja -C build -j "$JOBS" ||   ninja -C build -j "$JOBS"
 
 echo "==> Installing to $PREFIX (staged; image assembly links it into the guest)"
 ninja -C build install
