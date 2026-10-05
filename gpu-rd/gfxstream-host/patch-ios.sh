@@ -80,3 +80,70 @@ if target.exists():
 else:
     print('system-native-mac.mm not found; upstream layout changed?')
 PYSTUB
+
+# native_window: the APPLE branch picks Cocoa (no Cocoa on iOS). Replace the
+# whole file with iOS stubs keeping the exact signatures the backend calls.
+python3 - "$SRC" <<'PYSTUB2'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+target = src / 'host' / 'native_window' / 'native_sub_window_cocoa.mm'
+if target.exists():
+    target.write_text(
+        "// iOS stub for gfxstream native_window (Cocoa has no iOS analogue).\n"
+        "// On iOS the embedding app hands the backend a CAMetalLayer-backed\n"
+        "// view; sub-window management is a no-op around it.\n"
+        "#include <stdio.h>\n"
+        "#include <EGL/egl.h>\n"
+        "#include <NativeSubWindow.h>\n"
+        "\n"
+        "EGLNativeWindowType createSubWindow(FBNativeWindowType p_window, int x, int y, int width,\n"
+        "                                    int height, float dpr,\n"
+        "                                    SubWindowRepaintCallback repaint_callback,\n"
+        "                                    void* repaint_callback_param, int hideWindow) {\n"
+        "    (void)x; (void)y; (void)width; (void)height; (void)dpr;\n"
+        "    (void)repaint_callback; (void)repaint_callback_param; (void)hideWindow;\n"
+        "    return (EGLNativeWindowType)p_window;\n"
+        "}\n"
+        "\n"
+        "void destroySubWindow(EGLNativeWindowType win) {\n"
+        "    (void)win;\n"
+        "}\n"
+        "\n"
+        "int moveSubWindow(FBNativeWindowType p_parent_window, EGLNativeWindowType p_sub_window, int x,\n"
+        "                  int y, int width, int height, float dpr) {\n"
+        "    (void)p_parent_window; (void)p_sub_window;\n"
+        "    (void)x; (void)y; (void)width; (void)height; (void)dpr;\n"
+        "    return 0;\n"
+        "}\n"
+        "\n"
+        "void* getNativeDisplay() {\n"
+        "    return nullptr;\n"
+        "}\n"
+        "\n"
+        "void* getMetalLayerFromView(void* view) {\n"
+        "    return view;\n"
+        "}\n",
+        encoding='utf-8')
+    print('stubbed host/native_window/native_sub_window_cocoa.mm for iOS')
+else:
+    print('native_sub_window_cocoa.mm not found; upstream layout changed?')
+PYSTUB2
+
+# testlibs: macOS-only test windowing (Cocoa) is built unconditionally;
+# drop it on iOS (nothing else consumes it with tests disabled).
+python3 - "$SRC" <<'PYSTUB3'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    if 'add_subdirectory(testlibs)' in text:
+        text = text.replace('add_subdirectory(testlibs)',
+                            '# iOS: testlibs (Cocoa OSXWindow) skipped\nif(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)\nadd_subdirectory(testlibs)\nendif()')
+        cmake.write_text(text, encoding='utf-8')
+        print('guard testlibs behind non-iOS')
+PYSTUB3
