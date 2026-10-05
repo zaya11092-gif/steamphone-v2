@@ -9,6 +9,10 @@
 #    choice (-Dvulkan-drivers=...,gfxstream-experimental) per
 #    meson_options.txt; GL still rides on llvmpipe until the gfxstream GLES
 #    path is confirmed upstream.
+#  - gfxstream-experimental ALSO needs aemu_base (Android emulator utils)
+#    installed with a pkg-config file before Mesa configure. Disabled until
+#    aemu is packaged into the image (next WP2 prerequisite); llvmpipe +
+#    lavapipe remain the guest's software stack.
 #  - MESA_REF pin: first release line with gfxstream merged (24.3.x). Verify
 #    the tag exists: https://gitlab.freedesktop.org/mesa/mesa/-/tags
 set -euo pipefail
@@ -53,7 +57,7 @@ meson setup build \
     -Dopengl=true \
     -Dgles1=disabled -Dgles2=enabled \
     -Dgallium-drivers=llvmpipe \
-    -Dvulkan-drivers=swrast,gfxstream-experimental \
+    -Dvulkan-drivers=swrast \
     -Dvideo-codecs= \
     -Dtools= \
     -Dzstd=enabled \
