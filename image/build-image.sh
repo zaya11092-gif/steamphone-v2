@@ -36,8 +36,8 @@ command -v sfdisk >/dev/null || apt-get install -y fdisk
 
 mkdir -p "$OUT_DIR" "$WORK_DIR"
 
-echo "==> Registering qemu-user-static binfmt handlers"
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+# NOTE: no qemu-user binfmt registration needed - the workflow runs on a
+# native arm64 runner, so the arm64 container executes directly.
 
 echo "==> Creating raw disk ($DISK_SIZE)"
 rm -f "$RAW_IMAGE"
