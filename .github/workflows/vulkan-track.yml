@@ -192,53 +192,88 @@ jobs:
           name: qemu-rutabaga-spike-log
           path: qemu-spike.log
 
-  build-app-3d:
-    name: Engine with 3D chain (experimental)
+  sysroot-3d:
+    name: Sysroot with 3D chain (fast path)
     runs-on: macos-26
     needs: build-moltenvk
-    continue-on-error: true   # the 3D chain is experimental; failures are gate data
-    timeout-minutes: 150
+    continue-on-error: true
+    timeout-minutes: 100
     env:
       RUTABAGA_TRACK: '1'
-      SPGB_SKIP_GFXSTREAM: 'true'   # rutabaga plumbing first; gfxstream backend joins when the iOS port compiles
+      SPGB_SKIP_GFXSTREAM: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Cache Sysroot (3D)
-        id: cache-sysroot3d
+      - name: Restore base sysroot (built by the main Build workflow)
+        id: base
         uses: actions/cache/restore@v4
         with:
           path: ./sysroot-ios-arm64
-          key: ios-arm64-3d-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh', 'gpu-rd/build-3d-chain.sh') }}-${{ hashFiles('patches/**') }}
-          lookup-only: true
+          key: ios-arm64-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh') }}-${{ hashFiles('patches/**') }}
+          fail-on-cache-miss: true
       - name: Setup Path
-        if: steps.cache-sysroot3d.outputs.cache-hit != 'true'
         run: echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
-      - name: Build Sysroot with 3D chain
-        if: steps.cache-sysroot3d.outputs.cache-hit != 'true'
+      - name: Run 3D chain into the base sysroot
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
-          brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
-          pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
-          ./scripts/build_dependencies.sh -p ios -a arm64
-          tar -acf sysroot-3d.tgz sysroot-ios-arm64
+          export PREFIX="$PWD/sysroot-ios-arm64"
+          export SPGB_CHAIN_PREFIX="$PREFIX/spgb-chain"
+          bash gpu-rd/build-3d-chain.sh
+      - name: Rebuild only QEMU with the chain (replaces its libs in the sysroot)
+        run: |
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
+          WORK="$PWD/qemu-3d-build"; mkdir -p "$WORK"; cd "$WORK"
+          if [ ! -d qemu-10.0.12-utm ]; then
+            curl -fL --retry 3 -o qemu.tar.xz https://github.com/utmapp/qemu/releases/download/v10.0.12-utm/qemu-10.0.12-utm.tar.xz
+            tar -xf qemu.tar.xz
+          fi
+          cd qemu-10.0.12-utm
+          [ -f .utm-patched ] || { patch -p1 < "$GITHUB_WORKSPACE/patches/qemu-10.0.12-utm.patch"; touch .utm-patched; }
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/sysroot-ios-arm64/spgb-chain/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export PKG_CONFIG_SYSROOT_DIR="$GITHUB_WORKSPACE/sysroot-ios-arm64"
+          export PKG_CONFIG_LIBDIR="$GITHUB_WORKSPACE/sysroot-ios-arm64/lib/pkgconfig"
+          mkdir -p build && cd build
+          ../configure             --prefix="$GITHUB_WORKSPACE/sysroot-ios-arm64"             --enable-shared-lib --disable-cocoa --disable-sdl --disable-coreaudio             --disable-slirp-smbd --enable-ucontext --with-coroutine=libucontext             --target-list=aarch64-softmmu 2>&1 | tee ../configure.log
+          grep -i rutabaga ../configure.log || echo "(no rutabaga line in configure log)"
+          make -j"$(sysctl -n hw.ncpu)" 2>&1 | tail -5
+          make install
+          echo "== rutabaga symbols in installed libcommon.a:"
+          nm "$GITHUB_WORKSPACE/sysroot-ios-arm64/lib/libcommon.a" 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0
       - name: Save 3D Sysroot Cache
-        if: steps.cache-sysroot3d.outputs.cache-hit != 'true' && success()
+        if: success()
         uses: actions/cache/save@v4
         with:
           path: ./sysroot-ios-arm64
-          key: ios-arm64-3d-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh', 'gpu-rd/build-3d-chain.sh') }}-${{ hashFiles('patches/**') }}
-      - name: Verify rutabaga device in QEMU
-        run: |
-          find sysroot-ios-arm64 -name 'libcommon*.a' | head -2
-          nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo "0 rutabaga symbols (device not selected)"
+          key: ios-arm64-3d-${{ github.run_id }}
+      - name: Upload sysroot (3D) for the app job
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysroot-3d
+          path: sysroot-ios-arm64/spgb-chain
+
+  build-app-3d:
+    name: Engine with 3D chain (experimental)
+    runs-on: macos-26
+    needs: sysroot-3d
+    continue-on-error: true
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Download 3D sysroot
+        uses: actions/download-artifact@v4
+        with:
+          name: sysroot-3d
+          path: sysroot-ios-arm64/spgb-chain
       - name: Link MoltenVK into project
-        run: |
-          "$HOME/.cargo/bin/cargo" --version 2>/dev/null || true
-          python3 scripts/link_moltenvk.py || echo "link_moltenvk skipped (framework not staged in this job)"
+        run: python3 scripts/link_moltenvk.py || echo "link skipped (framework missing)"
       - name: Build experimental IPA
         run: |
           ./scripts/build_utm.sh -k iphoneos -s iOS -a arm64 -o UTM
