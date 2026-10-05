@@ -96,7 +96,7 @@ if target.exists():
         "// view; sub-window management is a no-op around it.\n"
         "#include <stdio.h>\n"
         "#include <EGL/egl.h>\n"
-        "#include <NativeSubWindow.h>\n"
+        "#include \"gfxstream/host/native_sub_window.h\"\n"
         "\n"
         "EGLNativeWindowType createSubWindow(FBNativeWindowType p_window, int x, int y, int width,\n"
         "                                    int height, float dpr,\n"
