@@ -81,6 +81,11 @@ fi
 export PKG_CONFIG_PATH="$PC_DIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 cd "$WORK/rutabaga_gfx"
 
+# build_dependencies.sh exports CFLAGS/CPPFLAGS/LDFLAGS/RUSTFLAGS for its own
+# cross builds; they leak into meson's sanity checks here and corrupt the
+# command lines. The cross file below carries everything needed.
+unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS RUSTFLAGS CARGO_BUILD_RUSTFLAGS 2>/dev/null || true
+
 # Cross file when targeting iOS from macOS: meson sanity-checks the C compiler
 # by RUNNING its output, which cannot work for an iOS target — the cross file
 # tells meson the host machine differs so it skips the sanity run.

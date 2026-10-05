@@ -54,6 +54,7 @@ if target.exists():
         "// (original uses IOKit/AppKit, which do not exist on iOS).\n"
         "#include <cstdint>\n"
         "#include <gfxstream/Optional.h>\n"
+        "#include <gfxstream/system/Memory.h>\n"
         "\n"
         "namespace gfxstream {\n"
         "namespace base {\n"
