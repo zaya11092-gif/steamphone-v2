@@ -224,6 +224,7 @@ jobs:
         run: |
           echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install meson pkg-config
+          pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
       - name: Setup Rust (iOS target for rutabaga)
         run: |
           unset RUSTFLAGS CARGO_BUILD_RUSTFLAGS
