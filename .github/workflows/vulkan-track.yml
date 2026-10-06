@@ -223,7 +223,7 @@ jobs:
       - name: Setup Path
         run: |
           echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
-          brew install meson pkg-config
+          brew install meson pkg-config bison gettext glib-utils libgpg-error llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
       - name: Setup Rust (iOS target for rutabaga)
         run: |
