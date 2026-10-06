@@ -254,6 +254,10 @@ jobs:
           export RUTABAGA_TRACK=1 SPGB_QEMU_ONLY=1
           # skip the chain re-run; it is already installed in the sysroot
           export SPGB_SKIP_CHAIN=1
+          # pin pkg-config at the sysroot (else meson probes Homebrew's host
+          # libcurl and the cross compile of block/curl.c fails on headers)
+          export PKG_CONFIG_LIBDIR="$PWD/sysroot-ios-arm64/lib/pkgconfig"
+          export PKG_CONFIG_SYSROOT_DIR="$PWD/sysroot-ios-arm64"
           ./scripts/build_dependencies.sh -p ios -a arm64
           SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
           echo "rutabaga symbols in QEMU libcommon.a: $SYMS"
