@@ -291,3 +291,31 @@ if cmake.exists():
     cmake.write_text(text, encoding='utf-8')
     print(f'OpenGLESDispatch: dropped {changed} decoder libs on iOS')
 PYOGD
+
+# APPLE frameworks: iOS has QuartzCore + IOSurface (the Metal presentation
+# path) but no AppKit. Split the link accordingly.
+python3 - "$SRC" <<'PYFW'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    old = ('if (APPLE)\n'
+           '    target_link_libraries(gfxstream_backend_static PUBLIC "-framework AppKit -framework QuartzCore -framework IOSurface")\n'
+           'endif()')
+    new = ('if (APPLE)\n'
+           '    if(CMAKE_SYSTEM_NAME STREQUAL iOS)\n'
+           '        target_link_libraries(gfxstream_backend_static PUBLIC "-framework QuartzCore -framework IOSurface")\n'
+           '    else()\n'
+           '        target_link_libraries(gfxstream_backend_static PUBLIC "-framework AppKit -framework QuartzCore -framework IOSurface")\n'
+           '    endif()\n'
+           'endif()')
+    if old in text:
+        text = text.replace(old, new)
+        cmake.write_text(text, encoding='utf-8')
+        print('backend frameworks: AppKit dropped on iOS (QuartzCore+IOSurface kept)')
+    else:
+        print('framework block not found/already patched')
+PYFW
