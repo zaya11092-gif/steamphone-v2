@@ -33,8 +33,12 @@ echo "==> [3D chain] target prefix: $CHAIN_PREFIX"
 if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ]; then
     echo "==> [3D chain] fetching gfxstream ($GFXSTREAM_REF)"
     git clone --depth 1 "https://github.com/google/gfxstream" "$WORK/gfxstream"
-    GFXSTREAM_PATCH="$(dirname "$SCRIPT_DIR")/gfxstream-host/patch-ios.sh"
-    [ -f "$GFXSTREAM_PATCH" ] && bash "$GFXSTREAM_PATCH" "$WORK/gfxstream" ios || true
+    GFXSTREAM_PATCH="$SCRIPT_DIR/gfxstream-host/patch-ios.sh"
+    if [ -f "$GFXSTREAM_PATCH" ]; then
+        bash "$GFXSTREAM_PATCH" "$WORK/gfxstream" ios
+    else
+        echo "GATE DATA: patch-ios.sh not found at $GFXSTREAM_PATCH"; exit 2
+    fi
 
     echo "==> [3D chain] configuring gfxstream host for iOS"
     # Include order proven green in the vulkan-track iOS leg: vendored shim
