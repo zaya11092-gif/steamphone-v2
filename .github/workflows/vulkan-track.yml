@@ -246,27 +246,16 @@ jobs:
         with:
           name: sysroot-3d-chain-log
           path: chain.log
-      - name: Rebuild only QEMU with the chain (replaces its libs in the sysroot)
+      - name: Rebuild QEMU with the chain (script's own cross env, QEMU-only mode)
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
-          WORK="$PWD/qemu-3d-build"; mkdir -p "$WORK"; cd "$WORK"
-          if [ ! -d qemu-10.0.12-utm ]; then
-            curl -fL --retry 3 -o qemu.tar.xz https://github.com/utmapp/qemu/releases/download/v10.0.12-utm/qemu-10.0.12-utm.tar.xz
-            tar -xf qemu.tar.xz
-          fi
-          cd qemu-10.0.12-utm
-          [ -f .utm-patched ] || { patch -p1 < "$GITHUB_WORKSPACE/patches/qemu-10.0.12-utm.patch"; touch .utm-patched; }
-          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/sysroot-ios-arm64/spgb-chain/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-          export PKG_CONFIG_SYSROOT_DIR="$GITHUB_WORKSPACE/sysroot-ios-arm64"
-          export PKG_CONFIG_LIBDIR="$GITHUB_WORKSPACE/sysroot-ios-arm64/lib/pkgconfig"
-          mkdir -p build && cd build
-          ../configure             --prefix="$GITHUB_WORKSPACE/sysroot-ios-arm64"             --enable-shared-lib --disable-cocoa --disable-sdl --disable-coreaudio             --disable-slirp-smbd --enable-ucontext --with-coroutine=libucontext             --target-list=aarch64-softmmu 2>&1 | tee ../configure.log
-          grep -i rutabaga ../configure.log || echo "(no rutabaga line in configure log)"
-          make -j"$(sysctl -n hw.ncpu)" 2>&1 | tail -5
-          make install
-          echo "== rutabaga symbols in installed libcommon.a:"
-          nm "$GITHUB_WORKSPACE/sysroot-ios-arm64/lib/libcommon.a" 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0
+          export RUTABAGA_TRACK=1 SPGB_QEMU_ONLY=1
+          # skip the chain re-run; it is already installed in the sysroot
+          export SPGB_SKIP_CHAIN=1
+          ./scripts/build_dependencies.sh -p ios -a arm64
+          SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
+          echo "rutabaga symbols in QEMU libcommon.a: $SYMS"
       - name: Save 3D Sysroot Cache
         if: success()
         uses: actions/cache/save@v4

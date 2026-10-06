@@ -1181,24 +1181,33 @@ if [ ! -f "$BUILD_DIR/BUILD_SUCCESS" ]; then
     fi
 fi
 
-if [ -z "$REBUILD" ]; then
-    download_all
+# SPGB_QEMU_ONLY=1: the base sysroot is already built (restored from cache);
+# rebuild only QEMU (+fixup) so the 3D fast path skips the 1.5h base phase.
+if [ "${SPGB_QEMU_ONLY:-0}" = "1" ]; then
+    echo "${GREEN}SPGB_QEMU_ONLY: base phase skipped; QEMU-only rebuild${NC}"
+else
+    if [ -z "$REBUILD" ]; then
+        download_all
+    fi
+    echo "${GREEN}Deleting old sysroot!${NC}"
+    rm -rf "$PREFIX/"*
+    rm -f "$BUILD_DIR/BUILD_SUCCESS"
+    rm -f "$BUILD_DIR"/meson*.cross
+    rm -f "$BUILD_DIR/cross.cmake"
+    mkdir -p "$PREFIX/Frameworks"
+    copy_private_headers
+    build_pkg_config
+    build_qemu_dependencies
 fi
-echo "${GREEN}Deleting old sysroot!${NC}"
-rm -rf "$PREFIX/"*
-rm -f "$BUILD_DIR/BUILD_SUCCESS"
-rm -f "$BUILD_DIR"/meson*.cross
-rm -f "$BUILD_DIR/cross.cmake"
-mkdir -p "$PREFIX/Frameworks"
-copy_private_headers
-build_pkg_config
-build_qemu_dependencies
 
 # 3D paravirtualization track (opt-in): gfxstream host -> rutabaga -> QEMU.
 # Default builds are unchanged; the vulkan-track workflow sets RUTABAGA_TRACK=1.
 if [ "${RUTABAGA_TRACK:-0}" = "1" ]; then
     export SPGB_CHAIN_PREFIX="$PREFIX/spgb-chain"
-    if bash "$(dirname "$(realpath "$0")")/../gpu-rd/build-3d-chain.sh"; then
+    if [ "${SPGB_SKIP_CHAIN:-0}" = "1" ] && [ -f "$SPGB_CHAIN_PREFIX/lib/pkgconfig/rutabaga_gfx_ffi.pc" ]; then
+        export PKG_CONFIG_PATH="$SPGB_CHAIN_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+        echo "RUTABAGA_TRACK: chain already installed; skipping chain build"
+    elif bash "$(dirname "$(realpath "$0")")/../gpu-rd/build-3d-chain.sh"; then
         export PKG_CONFIG_PATH="$SPGB_CHAIN_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         echo "RUTABAGA_TRACK: chain built; QEMU may select virtio-gpu-rutabaga"
     else
@@ -1208,9 +1217,11 @@ if [ "${RUTABAGA_TRACK:-0}" = "1" ]; then
 fi
 
 build $QEMU_DIR --cross-prefix="" $QEMU_PLATFORM_BUILD_FLAGS $QEMU_DEBUG_FLAGS
-build_spice_client
-build_vulkan_drivers
-build_d3d_drivers
+if [ "${SPGB_QEMU_ONLY:-0}" != "1" ]; then
+    build_spice_client
+    build_vulkan_drivers
+    build_d3d_drivers
+fi
 fixup_all
 remove_shared_gst_plugins # another hack...
 echo "${GREEN}All done!${NC}"
