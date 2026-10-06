@@ -37,21 +37,25 @@ if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ]; then
     [ -f "$GFXSTREAM_PATCH" ] && bash "$GFXSTREAM_PATCH" "$WORK/gfxstream" ios || true
 
     echo "==> [3D chain] configuring gfxstream host for iOS"
-    # Vulkan headers: the MoltenVK module staged by gpu-rd/moltenvk/build.sh
-    # when the profile is enabled, otherwise the sysroot's own.
-    VK_INCLUDE="${SPGB_VULKAN_INCLUDE:-$PREFIX/include}"
+    # Include order proven green in the vulkan-track iOS leg: vendored shim
+    # Vulkan headers -> gfxstream's vendored vulkan headers (must not be
+    # shadowed) -> vk_video. No MoltenVK dependency for compilation.
+    SHIM="$(cd "$(dirname "$0")/shim-headers" && pwd)"
     cmake -S "$WORK/gfxstream" -B "$WORK/gfxstream-build" \
         -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos \
         -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_CXX_FLAGS="-I$VK_INCLUDE" \
+        -DCMAKE_CXX_FLAGS="-I$SHIM/vulkan -I$WORK/gfxstream/third_party/vulkan/include -I$SHIM/vk_video" \
         -DCMAKE_INSTALL_PREFIX="$CHAIN_PREFIX" || {
         echo "GATE DATA: gfxstream cmake configure failed for iOS"; exit 2;
     }
-    cmake --build "$WORK/gfxstream-build" --parallel 4 || {
-        echo "GATE DATA: gfxstream host build failed for iOS (see log)"; exit 3;
+    set -o pipefail
+    (cmake --build "$WORK/gfxstream-build" --parallel 4 || \
+     cmake --build "$WORK/gfxstream-build") 2>&1 | tee "$WORK/gfxstream-build.log" || {
+        echo "GATE DATA: gfxstream host build failed for iOS (see gfxstream-build.log artifact)"; exit 3;
     }
     cmake --install "$WORK/gfxstream-build" || true
+    cp "$WORK/gfxstream-build.log" "$CHAIN_PREFIX/" 2>/dev/null || true
 
     # gfxstream's cmake does not ship a pc file; write the one rutabaga needs.
     GFXSTREAM_LIBDIR="$CHAIN_PREFIX/lib"
