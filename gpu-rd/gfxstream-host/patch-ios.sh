@@ -151,6 +151,49 @@ PYSTUB3
 # Host GLES path: desktop-GL-based (glestranslator, mac_native) has no iOS
 # analogue. Define GFXSTREAM_ENABLE_HOST_GLES=0 and skip the GL-only
 # subdirectories; the Vulkan backend (the path games need) stays on.
+# GL/GLES/EGL/KHR headers are vendored (shim-headers/) and staged into the
+# source root, which is on every backend target's include path.
+
+# Stage vendored headers into the source root (idempotent).
+SHIM_SRC="$(dirname "$0")/shim-headers"
+if [ -d "$SHIM_SRC" ]; then
+    cp -R "$SHIM_SRC/GL" "$SHIM_SRC/GLES2" "$SHIM_SRC/GLES3" "$SHIM_SRC/EGL" "$SHIM_SRC/KHR" "$SRC/" 2>/dev/null || true
+    echo "staged vendored GL/GLES/EGL/KHR headers into $SRC"
+fi
+
+# Header-only include dirs for skipped GLES subdirs whose headers the backend
+# compiles against (frame_buffer.cpp -> gles2_dec -> gl_snapshot.h etc.).
+python3 - "$SRC" <<'PYHDR'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    marker = 'SPGB_GLES_HEADER_DIRS'
+    if marker not in text:
+        anchor = '${GFXSTREAM_REPO_ROOT}'
+        old = f'        {anchor}\n        ${{GFXSTREAM_REPO_ROOT}}/host\n'
+        if old in text:
+            add = (
+                '        ${GFXSTREAM_REPO_ROOT}/host/gl/glsnapshot\n'
+                '        ${GFXSTREAM_REPO_ROOT}/host/gl/gles1_dec\n'
+                '        ${GFXSTREAM_REPO_ROOT}/host/gl/gles2_dec\n'
+                '        ${GFXSTREAM_REPO_ROOT}/host/gl/OpenGLESDispatch/include\n'
+            )
+            # add only on iOS to keep other platforms untouched
+            text = text.replace(old,
+                '        ' + anchor + '\n'
+                '        ${GFXSTREAM_REPO_ROOT}/host\n'
+                '        if(CMAKE_SYSTEM_NAME STREQUAL iOS)\n'
+                '        ' + add.rstrip() + '\n'
+                '        endif()\n', 1)
+            cmake.write_text(text, encoding='utf-8')
+            print('backend include dirs: GLES header-only dirs added on iOS')
+        else:
+            print('WARNING: backend include anchor not found')
+PYHDR
 python3 - "$SRC" <<'PYGL'
 import sys
 from pathlib import Path
@@ -158,17 +201,11 @@ from pathlib import Path
 src = Path(sys.argv[1])
 top = src / 'CMakeLists.txt'
 if top.exists():
-    text = top.read_text(encoding='utf-8')
-    if 'add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)' in text:
-        text = text.replace(
-            'add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)',
-            'if(CMAKE_SYSTEM_NAME STREQUAL iOS)\n'
-            '    add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=0)\n'
-            'else()\n'
-            '    add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)\n'
-            'endif()')
-        top.write_text(text, encoding='utf-8')
-        print('top CMakeLists: HOST_GLES conditional')
+    # HOST_GLES stays =1 (upstream constant): the GL *sources* are skipped on
+    # iOS, but backend headers take the EGL/GLES2 branch and compile against
+    # the vendored shim headers. All GL calls sit behind the skipped
+    # EmulationGL pimpl, so no GL symbols are referenced from retained code.
+    print('top CMakeLists: HOST_GLES left at =1 (vendored shim headers provide GLES/EGL)')
 gl = src / 'host' / 'gl' / 'CMakeLists.txt'
 if gl.exists():
     text = gl.read_text(encoding='utf-8')

@@ -50,6 +50,10 @@ mkdir -p "$MODULE/vulkan"
 VULKAN_HEADERS="$(find "$SRC" -path '*Vulkan-Headers/include/vulkan' -type d | head -1)"
 if [ -n "$VULKAN_HEADERS" ]; then
     cp "$VULKAN_HEADERS"/*.h "$MODULE/vulkan/"
+    # vk_video headers are siblings of vulkan/ in Vulkan-Headers and are
+    # included as <vk_video/...> from vulkan_core.h - stage them too.
+    VKV="$(dirname "$VULKAN_HEADERS")/vk_video"
+    [ -d "$VKV" ] && mkdir -p "$MODULE/vk_video" && cp "$VKV"/*.h "$MODULE/vk_video/"
 else
     # MoltenVK also ships core headers under MoltenVK/include when the
     # External fetch layout changed; fall back to any vulkan_core.h.

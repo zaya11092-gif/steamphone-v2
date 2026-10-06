@@ -131,7 +131,10 @@ jobs:
         run: |
           EXTRA=""
           if [[ "${{ matrix.target.name }}" == ios* ]]; then
-            EXTRA="-DCMAKE_CXX_FLAGS=-I$PWD/gpu-rd/moltenvk/module/vulkan"
+            # MoltenVK first (Vulkan entry points), then gfxstream's vendored
+            # vulkan headers (vk_enum_string_helper.h etc.) which MoltenVK's
+            # dir must not shadow, then the video headers sibling.
+            EXTRA="-DCMAKE_CXX_FLAGS=-I$PWD/gpu-rd/moltenvk/module/vulkan -I$PWD/gpu-rd/moltenvk/module/vk_video -I$PWD/gpu-rd/gfxstream-host/src/third_party/vulkan/include"
           fi
           set -o pipefail
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \
