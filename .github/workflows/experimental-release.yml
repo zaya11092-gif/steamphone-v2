@@ -24,6 +24,8 @@ jobs:
           submodules: recursive
 
       # ---- 3D engine sysroot (chain: gfxstream -> rutabaga -> QEMU) ----
+      - name: Setup Path
+        run: echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
       - name: Build sysroot with 3D chain
         env:
           RUTABAGA_TRACK: '1'
@@ -31,7 +33,6 @@ jobs:
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
-          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
           ./scripts/build_dependencies.sh -p ios -a arm64 || {
