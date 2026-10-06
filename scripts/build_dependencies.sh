@@ -1186,12 +1186,9 @@ fi
 if [ "${SPGB_QEMU_ONLY:-0}" = "1" ]; then
     echo "${GREEN}SPGB_QEMU_ONLY: base phase skipped; QEMU-only rebuild${NC}"
     mkdir -p "$BUILD_DIR" "$PREFIX"
-    # curl headers: the base phase normally builds libcurl into the sysroot;
-    # the restored cache has it, but pkg-config needs the tool present for the
-    # reconfigure of QEMU's meson. No-op if already staged.
-    if [ ! -f "$PREFIX/lib/pkgconfig/libcurl.pc" ] && [ ! -f "$PREFIX/lib/pkgconfig/curl.pc" ]; then
-        build_curl 2>/dev/null || download_curl 2>/dev/null ||             echo "WARNING: curl build skipped (system curl may satisfy QEMU)"
-    fi
+    # curl is only used by QEMU's network block devices (unused for our VM);
+    # disabling it sidesteps host-vs-sysroot curl.pc mixing entirely.
+    QEMU_PLATFORM_BUILD_FLAGS="$QEMU_PLATFORM_BUILD_FLAGS --disable-curl"
     download $QEMU_SRC
 else
     if [ -z "$REBUILD" ]; then
