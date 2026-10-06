@@ -241,26 +241,26 @@ jobs:
           export SPGB_CHAIN_PREFIX="$PREFIX/spgb-chain"
           set -o pipefail
           bash gpu-rd/build-3d-chain.sh 2>&1 | tee chain.log
+      - name: Rebuild QEMU with the chain (full proven build path)
+        run: |
+          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
+          export RUTABAGA_TRACK=1 SPGB_QEMU_ONLY=1 SPGB_SKIP_CHAIN=1
+          export PKG_CONFIG_LIBDIR="$PWD/sysroot-ios-arm64/lib/pkgconfig"
+          export PKG_CONFIG_SYSROOT_DIR="$PWD/sysroot-ios-arm64"
+          ./scripts/build_dependencies.sh -p ios -a arm64 || {
+            echo "QEMU-only mode failed; falling back to the full proven build"
+            unset PKG_CONFIG_LIBDIR PKG_CONFIG_SYSROOT_DIR
+            ./scripts/build_dependencies.sh -p ios -a arm64
+          }
+          SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
+          echo "rutabaga symbols in QEMU libcommon.a: $SYMS"
       - name: Upload chain log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sysroot-3d-chain-log
           path: chain.log
-      - name: Rebuild QEMU with the chain (script's own cross env, QEMU-only mode)
-        run: |
-          NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
-          if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
-          export RUTABAGA_TRACK=1 SPGB_QEMU_ONLY=1
-          # skip the chain re-run; it is already installed in the sysroot
-          export SPGB_SKIP_CHAIN=1
-          # pin pkg-config at the sysroot (else meson probes Homebrew's host
-          # libcurl and the cross compile of block/curl.c fails on headers)
-          export PKG_CONFIG_LIBDIR="$PWD/sysroot-ios-arm64/lib/pkgconfig"
-          export PKG_CONFIG_SYSROOT_DIR="$PWD/sysroot-ios-arm64"
-          ./scripts/build_dependencies.sh -p ios -a arm64
-          SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
-          echo "rutabaga symbols in QEMU libcommon.a: $SYMS"
       - name: Save 3D Sysroot Cache
         if: success()
         uses: actions/cache/save@v4
