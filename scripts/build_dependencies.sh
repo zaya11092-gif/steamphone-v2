@@ -1185,6 +1185,7 @@ fi
 # rebuild only QEMU (+fixup) so the 3D fast path skips the 1.5h base phase.
 if [ "${SPGB_QEMU_ONLY:-0}" = "1" ]; then
     echo "${GREEN}SPGB_QEMU_ONLY: base phase skipped; QEMU-only rebuild${NC}"
+    mkdir -p "$BUILD_DIR" "$PREFIX"
     download $QEMU_SRC
 else
     if [ -z "$REBUILD" ]; then
