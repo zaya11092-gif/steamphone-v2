@@ -139,7 +139,7 @@ jobs:
           set -o pipefail
           cmake -S gpu-rd/gfxstream-host/src -B gpu-rd/gfxstream-host/build/${{ matrix.target.name }} \
             ${{ matrix.target.cmake_args }} \
-            $EXTRA \
+            "$EXTRA" \
             -DBUILD_TESTING=OFF \
             -DCMAKE_INSTALL_PREFIX=$PWD/gfxstream-host/prefix-${{ matrix.target.name }} \
             2>&1 | tee gpu-rd/gfxstream-host/configure-${{ matrix.target.name }}.log
