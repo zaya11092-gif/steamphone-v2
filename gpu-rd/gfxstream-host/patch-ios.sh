@@ -266,3 +266,26 @@ if cmake.exists():
         cmake.write_text(text, encoding='utf-8')
         print('gl-server build guarded on iOS (SPGB_IOS_SKIP_GL_SERVER)')
 PYGLSRV
+
+# OpenGLESDispatch PUBLIC-links the skipped decoders; make them drop out on
+# iOS with the same generator expressions (dispatch is dlopen-based, the
+# vulkan path never calls them).
+python3 - "$SRC" <<'PYOGD'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'host' / 'gl' / 'OpenGLESDispatch' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    nl = chr(10)
+    changed = 0
+    for lib in ('gles1_dec', 'gles2_dec', 'EGL_translator_static'):
+        tgt = f'    {lib}{nl}'
+        if tgt in text:
+            text = text.replace(tgt,
+                '    $<$<NOT:$<PLATFORM_ID:iOS>>:' + lib + '>' + nl)
+            changed += 1
+    cmake.write_text(text, encoding='utf-8')
+    print(f'OpenGLESDispatch: dropped {changed} decoder libs on iOS')
+PYOGD
