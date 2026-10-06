@@ -112,6 +112,14 @@ EOF
     echo "==> [3D chain] using iOS cross file (needs_exe_wrapper=true)"
 fi
 
+# Rust diagnostics + guaranteed iOS std, in the exact context meson runs in.
+echo "==> [3D chain] rust context: which=$(command -v rustc) $(rustc --version 2>&1)"
+echo "==> [3D chain] RUSTUP_HOME=${RUSTUP_HOME:-unset} CARGO_HOME=${CARGO_HOME:-unset} HOME=$HOME"
+rustup target add aarch64-apple-ios 2>&1 || true
+echo "==> [3D chain] std libs for aarch64-apple-ios:"
+TLD="$(rustc --print target-libdir --target aarch64-apple-ios 2>&1)"
+echo "    $TLD"; ls "$TLD" 2>/dev/null | grep -E "libstd|librstd" | head -3
+
 meson setup build-rutabaga \
     --buildtype release \
     --prefix "$CHAIN_PREFIX" \
