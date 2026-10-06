@@ -1210,18 +1210,25 @@ fi
 if [ "${RUTABAGA_TRACK:-0}" = "1" ]; then
     export SPGB_CHAIN_PREFIX="$PREFIX/spgb-chain"
     if [ "${SPGB_SKIP_CHAIN:-0}" = "1" ] && [ -f "$SPGB_CHAIN_PREFIX/lib/pkgconfig/rutabaga_gfx_ffi.pc" ]; then
-        export PKG_CONFIG_PATH="$SPGB_CHAIN_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         echo "RUTABAGA_TRACK: chain already installed; skipping chain build"
     elif bash "$(dirname "$(realpath "$0")")/../gpu-rd/build-3d-chain.sh"; then
-        export PKG_CONFIG_PATH="$SPGB_CHAIN_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         echo "RUTABAGA_TRACK: chain built; QEMU may select virtio-gpu-rutabaga"
     else
         echo "RUTABAGA_TRACK: chain build failed (gate data in log above)"
         exit 1
     fi
+    # Scope the chain's pkg-config to the QEMU build ONLY: leaking it into
+    # spice/vulkan-drivers made them resolve chain/homebrew libs and fail.
+    if [ -f "$SPGB_CHAIN_PREFIX/lib/pkgconfig/rutabaga_gfx_ffi.pc" ]; then
+        SAVED_PKG_CONFIG_PATH="${PKG_CONFIG_PATH:-}"
+        export PKG_CONFIG_PATH="$SPGB_CHAIN_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+    fi
 fi
 
 build $QEMU_DIR --cross-prefix="" $QEMU_PLATFORM_BUILD_FLAGS $QEMU_DEBUG_FLAGS
+if [ -n "${SAVED_PKG_CONFIG_PATH:-}" ]; then
+    export PKG_CONFIG_PATH="$SAVED_PKG_CONFIG_PATH"
+fi
 if [ "${SPGB_QEMU_ONLY:-0}" != "1" ]; then
     build_spice_client
     build_vulkan_drivers
