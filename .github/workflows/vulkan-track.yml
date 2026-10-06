@@ -221,7 +221,10 @@ jobs:
           restore-keys: ios-arm64-${{ hashFiles('scripts/build_dependencies.sh', 'scripts/fixup.sh') }}-${{ hashFiles('patches/**') }}
           fail-on-cache-miss: false
       - name: Setup Path
-        run: echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+        run: |
+          echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+          brew install meson pkg-config
+          rustup target add aarch64-apple-ios || true
       - name: Run 3D chain into the base sysroot
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
