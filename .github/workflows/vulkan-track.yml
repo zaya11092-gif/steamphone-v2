@@ -224,7 +224,14 @@ jobs:
         run: |
           echo "/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           brew install meson pkg-config
-          rustup target add aarch64-apple-ios || true
+      - name: Setup Rust (iOS target for rutabaga)
+        run: |
+          unset RUSTFLAGS CARGO_BUILD_RUSTFLAGS
+          command -v rustup >/dev/null 2>&1 || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add aarch64-apple-ios
+          rustc --version && rustc --print target-libdir --target aarch64-apple-ios
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run 3D chain into the base sysroot
         run: |
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
