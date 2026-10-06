@@ -40,6 +40,12 @@ jobs:
             ./scripts/build_dependencies.sh -p ios -a arm64
           }
 
+      - name: Upload chain build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experimental-chain-log
+          path: sysroot-ios-arm64/spgb-chain/gfxstream-build.log
       - name: Verify rutabaga device in QEMU
         run: |
           SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
