@@ -319,3 +319,38 @@ if cmake.exists():
     else:
         print('framework block not found/already patched')
 PYFW
+
+# common/base: its APPLE platform deps include AppKit + IOKit (neither on
+# iOS; IOKit-as-framework is macOS-only, iOS has IOKit headers partially).
+python3 - "$SRC" <<'PYCB'
+import sys
+from pathlib import Path
+
+src = Path(sys.argv[1])
+cmake = src / 'common' / 'base' / 'CMakeLists.txt'
+if cmake.exists():
+    text = cmake.read_text(encoding='utf-8')
+    old = ('elseif(APPLE)\n'
+           '    set(gfxstream_common_base_platform_deps\n'
+           '        "-framework Foundation"\n'
+           '        "-framework AppKit"\n'
+           '        "-framework IOKit")\n'
+           'endif()')
+    new = ('elseif(APPLE)\n'
+           '    if(CMAKE_SYSTEM_NAME STREQUAL iOS)\n'
+           '        set(gfxstream_common_base_platform_deps\n'
+           '            "-framework Foundation")\n'
+           '    else()\n'
+           '        set(gfxstream_common_base_platform_deps\n'
+           '            "-framework Foundation"\n'
+           '            "-framework AppKit"\n'
+           '            "-framework IOKit")\n'
+           '    endif()\n'
+           'endif()')
+    if old in text:
+        text = text.replace(old, new)
+        cmake.write_text(text, encoding='utf-8')
+        print('common/base: iOS platform deps = Foundation only')
+    else:
+        print('common/base block not found or already patched')
+PYCB
