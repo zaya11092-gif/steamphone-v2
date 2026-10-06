@@ -232,13 +232,14 @@ cmake = src / 'host' / 'CMakeLists.txt'
 if cmake.exists():
     text = cmake.read_text(encoding='utf-8')
     changed = 0
+    nl = chr(10)
     for lib in ('gfxstream-gl-server', 'GLES_CM_translator_static', 'renderControl_dec'):
-        tgt = f'        {lib}\n'
+        tgt = f'        {lib}{nl}'
         if tgt in text:
-            nl = chr(10)
+            # target_link_libraries is not flow control: use a generator
+            # expression so the lib drops out on iOS.
             text = text.replace(tgt,
-                '        if(NOT CMAKE_SYSTEM_NAME STREQUAL iOS)' + nl + tgt +
-                '        endif()' + nl)
+                '        $<$<NOT:$<PLATFORM_ID:iOS>>:' + lib + '>' + nl)
             changed += 1
     cmake.write_text(text, encoding='utf-8')
     print(f'dropped {changed} GL-only libs from backend link on iOS')
