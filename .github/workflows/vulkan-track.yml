@@ -246,10 +246,8 @@ jobs:
           NEWEST_XCODE="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
           export RUTABAGA_TRACK=1 SPGB_QEMU_ONLY=1 SPGB_SKIP_CHAIN=1
-          # pin pkg-config at the sysroot (curl is disabled, so the pin now
-          # resolves gnutls/glib from the sysroot instead of Homebrew)
-          export PKG_CONFIG_LIBDIR="$PWD/sysroot-ios-arm64/lib/pkgconfig"
-          export PKG_CONFIG_SYSROOT_DIR="$PWD/sysroot-ios-arm64"
+          # glib/gnutls ride from Homebrew like the main flow (resolved at
+          # load via -undefined dynamic_lookup); curl is disabled entirely.
           ./scripts/build_dependencies.sh -p ios -a arm64
           SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
           echo "rutabaga symbols in QEMU libcommon.a: $SYMS"
