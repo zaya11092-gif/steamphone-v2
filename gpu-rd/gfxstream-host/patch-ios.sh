@@ -181,6 +181,7 @@ if cmake.exists():
                 '        ${GFXSTREAM_REPO_ROOT}/host/gl/gles1_dec\n'
                 '        ${GFXSTREAM_REPO_ROOT}/host/gl/gles2_dec\n'
                 '        ${GFXSTREAM_REPO_ROOT}/host/gl/OpenGLESDispatch/include\n'
+                '        ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/common/include\n'
             )
             # add only on iOS to keep other platforms untouched
             text = text.replace(old,
