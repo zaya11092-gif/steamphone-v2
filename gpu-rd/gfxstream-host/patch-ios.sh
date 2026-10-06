@@ -281,11 +281,13 @@ if cmake.exists():
     nl = chr(10)
     changed = 0
     for lib in ('gles1_dec', 'gles2_dec', 'EGL_translator_static'):
-        tgt = f'    {lib}{nl}'
-        if tgt in text:
-            text = text.replace(tgt,
-                '    $<$<NOT:$<PLATFORM_ID:iOS>>:' + lib + '>' + nl)
-            changed += 1
+        for tgt in (f'    {lib}{nl}', f'    {lib})'):
+            repl = ('    $<$<NOT:$<PLATFORM_ID:iOS>>:' + lib + '>' +
+                    (nl if tgt.endswith(nl) else ')'))
+            if tgt in text:
+                text = text.replace(tgt, repl)
+                changed += 1
+                break
     cmake.write_text(text, encoding='utf-8')
     print(f'OpenGLESDispatch: dropped {changed} decoder libs on iOS')
 PYOGD
