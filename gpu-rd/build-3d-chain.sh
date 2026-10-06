@@ -40,7 +40,7 @@ if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ]; then
     # Include order proven green in the vulkan-track iOS leg: vendored shim
     # Vulkan headers -> gfxstream's vendored vulkan headers (must not be
     # shadowed) -> vk_video. No MoltenVK dependency for compilation.
-    SHIM="$(cd "$(dirname "$0")/shim-headers" && pwd)"
+    SHIM="$(cd "$(dirname "$0")/gfxstream-host/shim-headers" && pwd)"
     cmake -S "$WORK/gfxstream" -B "$WORK/gfxstream-build" \
         -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos \
         -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release \
