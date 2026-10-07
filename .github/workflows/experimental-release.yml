@@ -35,9 +35,14 @@ jobs:
           if [ -n "$NEWEST_XCODE" ]; then sudo xcode-select -s "$NEWEST_XCODE"; fi
           brew install bison pkg-config gettext glib-utils libgpg-error nasm make meson cmake spirv-tools llvm spirv-llvm-translator libxcb libxrandr
           pip3 install --break-system-packages --user six pyparsing pyyaml setuptools distlib mako
+          # gettext's host-dylib libtool step is flaky under make -j; a rerun
+          # resumes (downloads and built artifacts persist) and skips it.
           ./scripts/build_dependencies.sh -p ios -a arm64 || {
-            echo "FULL 3D chain failed; falling back to plumbing-only build"
-            ./scripts/build_dependencies.sh -p ios -a arm64
+            echo "first pass failed; resuming (artifacts persist)"
+            ./scripts/build_dependencies.sh -p ios -a arm64 || {
+              echo "second pass failed; last attempt"
+              ./scripts/build_dependencies.sh -p ios -a arm64
+            }
           }
 
       - name: Upload chain build log
