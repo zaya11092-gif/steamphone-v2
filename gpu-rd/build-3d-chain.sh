@@ -128,15 +128,25 @@ echo "==> [3D chain] std libs for aarch64-apple-ios:"
 TLD="$(rustc --print target-libdir --target aarch64-apple-ios 2>&1)"
 echo "    $TLD"; ls "$TLD" 2>/dev/null | grep -E "libstd|librstd" | head -3
 
-meson setup build-rutabaga \
-    --buildtype release \
-    --prefix "$CHAIN_PREFIX" \
-    "${CROSS_ARGS[@]}" \
-    -Dffi=true -Dkumquat=false -Dbuild-tests=false \
-    -Dfeatures="$RUTABAGA_FEATURES" \
-    || { echo "GATE DATA: rutabaga meson setup failed"; exit 4; }
-meson compile -C build-rutabaga || { echo "GATE DATA: rutabaga build failed"; exit 5; }
-meson install -C build-rutabaga
+# meson's rust cross sanity/linker probes are flaky (nondeterministic between
+# runs on the same commit); setup+compile are retried from a clean build dir.
+RUT_OK=0
+for attempt in 1 2 3; do
+    rm -rf build-rutabaga
+    if meson setup build-rutabaga \
+        --buildtype release \
+        --prefix "$CHAIN_PREFIX" \
+        "${CROSS_ARGS[@]}" \
+        -Dffi=true -Dkumquat=false -Dbuild-tests=false \
+        -Dfeatures="$RUTABAGA_FEATURES" \
+       && meson compile -C build-rutabaga \
+       && meson install -C build-rutabaga; then
+        RUT_OK=1
+        break
+    fi
+    echo "==> [3D chain] rutabaga attempt $attempt failed; retrying clean"
+done
+[ "$RUT_OK" = "1" ] || { echo "GATE DATA: rutabaga build failed after retries"; exit 5; }
 
 echo "==> [3D chain] complete:"
 find "$CHAIN_PREFIX" \( -name '*.a' -o -name '*.pc' \) | head -12
