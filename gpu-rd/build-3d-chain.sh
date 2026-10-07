@@ -72,7 +72,7 @@ Name: gfxstream_backend
 Description: gfxstream host renderer (SteamPhone 3D chain)
 Version: 0.1.2
 Libs: -L\${libdir} -lgfxstream_backend
-Cflags: -I\${includedir} -I$VK_INCLUDE
+Cflags: -I\${includedir} -I$SHIM/vulkan -I$SHIM/vk_video
 EOF
     # Stage the backend headers rutabaga's ffi build includes.
     cp -R "$WORK/gfxstream/include/." "$CHAIN_PREFIX/include/" 2>/dev/null || true
