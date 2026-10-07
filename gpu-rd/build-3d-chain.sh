@@ -59,6 +59,14 @@ if [ "${SPGB_SKIP_GFXSTREAM:-0}" != "true" ]; then
         echo "GATE DATA: gfxstream host build failed for iOS (see gfxstream-build.log artifact)"; exit 3;
     }
     cmake --install "$WORK/gfxstream-build" || true
+    # gfxstream's install() puts the dylib under <build>/distribution/ and
+    # ignores our prefix; copy every built artifact into the chain prefix lib/
+    # so -lgfxstream_backend (rutabaga link) resolves.
+    mkdir -p "$CHAIN_PREFIX/lib"
+    find "$WORK/gfxstream-build" \( -name 'libgfxstream*.dylib' -o -name 'libgfxstream*.a' \) | while read -r lib; do
+        cp "$lib" "$CHAIN_PREFIX/lib/" || true
+    done
+    ls "$CHAIN_PREFIX/lib/" || true
     cp "$WORK/gfxstream-build.log" "$CHAIN_PREFIX/" 2>/dev/null || true
 
     # gfxstream's cmake does not ship a pc file; write the one rutabaga needs.
