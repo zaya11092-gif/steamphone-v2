@@ -74,12 +74,24 @@ jobs:
           ./scripts/package.sh ipa UTM.xcarchive .
           mv UTM.ipa SteamPhone-3D-experimental.ipa
 
-      # ---- Vulkan probe IPA (normal engine + MoltenVK, for the G0 probe) ----
+      # ---- Vulkan probe IPA (needs the SE/TCI sysroot, built by the main
+      # Build workflow's cache; skip gracefully when not present) ----
+      - name: Check SE sysroot availability
+        id: sesysroot
+        run: |
+          if [ -d sysroot-ios-tci-arm64/share/qemu ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "SE sysroot not present; probe IPA skipped (JIT 3D IPA is the release's core artifact)"
+            echo "available=false" >> $GITHUB_OUTPUT
+          fi
       - name: Build probe IPA (SE engine + MoltenVK)
+        if: steps.sesysroot.outputs.available == 'true'
         run: |
           ./scripts/build_utm.sh -k iphoneos -s iOS-SE -a arm64 -o UTMSE
           tar -acf UTMSE-3D.xcarchive.tgz UTMSE.xcarchive
       - name: Package probe IPA
+        if: steps.sesysroot.outputs.available == 'true'
         run: |
           tar -xf UTMSE-3D.xcarchive.tgz
           ./scripts/package.sh ipa-se UTMSE.xcarchive .
@@ -87,7 +99,9 @@ jobs:
 
       - name: Checksums
         run: |
-          sha256sum SteamPhone-3D-experimental.ipa SteamPhone-SE-vulkan-probe.ipa > SHA256SUMS.txt
+          FILES="SteamPhone-3D-experimental.ipa"
+          [ -f SteamPhone-SE-vulkan-probe.ipa ] && FILES="$FILES SteamPhone-SE-vulkan-probe.ipa"
+          sha256sum $FILES > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - name: Release
@@ -118,5 +132,4 @@ jobs:
             Not affiliated with Valve or Droid-Deck. GPL-3.0.
           files: |
             SteamPhone-3D-experimental.ipa
-            SteamPhone-SE-vulkan-probe.ipa
             SHA256SUMS.txt
