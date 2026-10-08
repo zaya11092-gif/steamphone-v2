@@ -67,18 +67,19 @@ jobs:
           ./scripts/build_utm.sh -k iphoneos -s iOS -a arm64 -o UTM
           tar -acf UTM-3D.xcarchive.tgz UTM.xcarchive
 
-      - name: Upload 3D IPA as artifact (immediate download; survives later step failures)
-        uses: actions/upload-artifact@v4
-        with:
-          name: SteamPhone-3D-experimental.ipa
-          path: SteamPhone-3D-experimental.ipa
-          if-no-files-found: warn
       - name: Package 3D IPA
         run: |
           brew install ldid
           tar -xf UTM-3D.xcarchive.tgz
           ./scripts/package.sh ipa UTM.xcarchive .
           mv UTM.ipa SteamPhone-3D-experimental.ipa
+
+      - name: Upload 3D IPA as artifact (immediate download; survives later step failures)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SteamPhone-3D-experimental.ipa
+          path: SteamPhone-3D-experimental.ipa
+          if-no-files-found: warn
 
       # ---- Vulkan probe IPA (needs the SE/TCI sysroot, built by the main
       # Build workflow's cache; skip gracefully when not present) ----
