@@ -140,3 +140,47 @@ jobs:
           files: |
             SteamPhone-3D-experimental.ipa
             SHA256SUMS.txt
+
+  bundle-image:
+    name: Bundle SteamPhoneOS into IPA
+    runs-on: macos-26
+    needs: build-experimental
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install ldid
+        run: brew install ldid
+      - name: Resolve tag
+        id: tag
+        run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Download IPA + image from release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p 'SteamPhone-3D-experimental.ipa' -p 'SteamPhoneOS-arm64.qcow2' -D bundle
+          ls -lh bundle/
+      - name: Inject image + version into app bundle and re-sign
+        run: |
+          cd bundle
+          unzip -q SteamPhone-3D-experimental.ipa -d unpacked
+          cp SteamPhoneOS-arm64.qcow2 unpacked/Payload/UTM.app/SteamPhoneOS.qcow2
+          printf '%s' "${{ steps.tag.outputs.tag }}" > unpacked/Payload/UTM.app/image.version
+          ldid -S unpacked/Payload/UTM.app
+          cd unpacked && zip -qry ../SteamPhone-3D-bundled.ipa Payload && cd ..
+          sha256sum SteamPhone-3D-bundled.ipa > SteamPhone-3D-bundled.ipa.sha256
+          ls -lh SteamPhone-3D-bundled.ipa
+      - name: Upload bundled IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: SteamPhone-3D-bundled.ipa
+          path: |
+            bundle/SteamPhone-3D-bundled.ipa
+            bundle/SteamPhone-3D-bundled.ipa.sha256
+      - name: Attach bundled IPA to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ steps.tag.outputs.tag }}" -R "$GITHUB_REPOSITORY"             bundle/SteamPhone-3D-bundled.ipa bundle/SteamPhone-3D-bundled.ipa.sha256 --clobber
+
