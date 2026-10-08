@@ -51,11 +51,13 @@ jobs:
         with:
           name: experimental-chain-log
           path: sysroot-ios-arm64/spgb-chain/gfxstream-build.log
-      - name: Verify rutabaga device in QEMU
+      - name: Verify rutabaga device in QEMU (diagnostic; not gating)
         run: |
-          SYMS=$(nm sysroot-ios-arm64/lib/libcommon.a 2>/dev/null | grep -c virtio_gpu_rutabaga || echo 0)
-          echo "rutabaga symbols in QEMU: $SYMS"
-          echo "RUTABAGA_SYMS=$SYMS" >> $GITHUB_ENV
+          TOTAL=$(find sysroot-ios-arm64 -name '*.a' 2>/dev/null | while read -r f; do
+            nm "$f" 2>/dev/null | grep -c virtio_gpu_rutabaga || true
+          done | awk '{s+=$1} END {print s+0}')
+          echo "rutabaga symbols across sysroot libs: $TOTAL"
+          ls sysroot-ios-arm64/spgb-chain/lib/ 2>/dev/null || true
 
       - name: Link MoltenVK into project
         run: python3 scripts/link_moltenvk.py || echo "MoltenVK link skipped"
