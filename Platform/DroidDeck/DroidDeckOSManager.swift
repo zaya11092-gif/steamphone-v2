@@ -77,6 +77,10 @@ final class DroidDeckImageDownloader: NSObject, URLSessionDownloadDelegate {
         isRunning = false
     }
 
+    func clearResumeData() {
+        resumeData = nil
+    }
+
     // MARK: - URLSessionDownloadDelegate
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
@@ -136,9 +140,16 @@ final class SteamPhoneOSManager: ObservableObject {
             self?.phase = .downloading(progress: fraction)
         }
         downloader.onError = { [weak self] error in
-            guard self?.downloader.isRunning == false,
-                  (error as NSError).code != NSURLErrorCancelled else { return } // pause is user-initiated
-            self?.phase = .failed("Download failed: \(error.localizedDescription)")
+            guard let self else { return }
+            // A stale resume task fails immediately with an empty file; retry
+            // once from scratch before surfacing the error.
+            if self.downloader.resumeData != nil {
+                self.downloader.clearResumeData()
+                self.phase = .idle
+                self.startDownload()
+                return
+            }
+            self.phase = .failed("Download failed: \(error.localizedDescription)")
         }
         downloader.onFinished = { [weak self] tmpURL in
             self?.stageDownloadedFile(at: tmpURL)

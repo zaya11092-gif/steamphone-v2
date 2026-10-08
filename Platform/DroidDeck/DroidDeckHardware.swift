@@ -74,7 +74,9 @@ enum DroidDeckBuildConfig {
     /// "DroidDeckImageURL" (e.g. pointing at a CI artifact).
     static var imageDownloadURL: URL {
         // Stable-name asset attached to the latest release by the image workflow.
-        let fallback = "https://github.com/zaya11092-gif/steamphone-v2/releases/latest/download/SteamPhoneOS-arm64.qcow2"
+        // Direct asset URL: skipping the /releases/latest/ 302 hop avoids a
+        // rare on-device empty-body failure in URLSession download tasks.
+        let fallback = "https://github.com/zaya11092-gif/steamphone-v2/releases/download/v0.6.0-3d-alpha1/SteamPhoneOS-arm64.qcow2"
         if let override = UserDefaults.standard.string(forKey: "DroidDeckImageURL"), let url = URL(string: override) {
             return url
         }
