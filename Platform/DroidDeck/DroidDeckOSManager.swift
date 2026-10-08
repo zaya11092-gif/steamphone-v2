@@ -203,7 +203,7 @@ final class SteamPhoneOSManager: ObservableObject {
         if case .ready = phase { return }
         guard existingVM == nil, !hasStagedImage else { return }
         guard let bundled = Bundle.main.url(forResource: "SteamPhoneOS", withExtension: "qcow2") else { return }
-        let version = bundledVersion ?? "unknown"
+        let version = bundledInstallVersion ?? "unknown"
         do {
             let size = (try FileManager.default.attributesOfItem(atPath: bundled.path)[.size] as? Int64) ?? 0
             guard size > 100 * 1024 * 1024 else { return } // truncated bundle resource
