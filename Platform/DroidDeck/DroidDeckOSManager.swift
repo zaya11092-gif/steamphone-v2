@@ -125,6 +125,8 @@ final class SteamPhoneOSManager: ObservableObject {
     }
 
     @Published private(set) var phase: Phase = .idle
+    @Published var imageUpdateTag: String?
+    private var pendingUpdateTag: String?
 
     private let downloader = DroidDeckImageDownloader()
     private weak var data: UTMData?
@@ -189,16 +191,78 @@ final class SteamPhoneOSManager: ObservableObject {
     func attach(data: UTMData) {
         self.data = data
         refreshPhase()
+        installBundledImageIfFreshInstall()
+        Task { await checkForImageUpdate() }
+    }
+
+    /// Bundled image (SteamPhone-3D-bundled.ipa): on a fresh install with no
+    /// VM, copy the qcow2 out of the bundle into Application Support and
+    /// install — no download needed.
+    func installBundledImageIfFreshInstall() {
+        guard !downloader.isRunning else { return }
+        if case .ready = phase { return }
+        guard existingVM == nil, !hasStagedImage else { return }
+        guard let bundled = Bundle.main.url(forResource: "SteamPhoneOS", withExtension: "qcow2") else { return }
+        let version = bundledVersion ?? "unknown"
+        do {
+            let size = (try FileManager.default.attributesOfItem(atPath: bundled.path)[.size] as? Int64) ?? 0
+            guard size > 100 * 1024 * 1024 else { return } // truncated bundle resource
+            let supportDir = downloadDestination.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: supportDir, withIntermediateDirectories: true)
+            try? FileManager.default.removeItem(at: downloadDestination)
+            try FileManager.default.copyItem(at: bundled, to: downloadDestination)
+            UserDefaults.standard.set(version, forKey: "InstalledImageVersion")
+            guard let data else { return }
+            Task { @MainActor in
+                do {
+                    try await installImage(at: nil, into: data)
+                    UserDefaults.standard.set(version, forKey: "InstalledImageVersion")
+                } catch {
+                    phase = .failed("Bundled image install failed: \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            phase = .failed("Bundled image staging failed: \(error.localizedDescription)")
+        }
+    }
+
+    private var bundledInstallVersion: String? {
+        Bundle.main.url(forResource: "image", withExtension: "version")
+            .flatMap { try? String(contentsOf: $0, encoding: .utf8) }
+    }
+
+    /// GitHub check: is there a newer image release than the one installed?
+    func checkForImageUpdate() async {
+        struct Release: Decodable { let tagName: String }
+        guard let url = URL(string: "https://api.github.com/repos/zaya11092-gif/steamphone-v2/releases?per_page=1") else { return }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let releases = try JSONDecoder().decode([Release].self, from: data)
+            guard let tag = releases.first?.tagName else { return }
+            let installed = UserDefaults.standard.string(forKey: "InstalledImageVersion")
+            if installed != tag, existingVM != nil {
+                await MainActor.run { imageUpdateTag = tag }
+            }
+        } catch {
+            // update check is best-effort
+        }
+    }
+
+    /// One-tap update: fetch the newer image, replace the VM (wipes VM state).
+    func updateToTag(_ tag: String) {
+        let url = URL(string: "https://github.com/zaya11092-gif/steamphone-v2/releases/download/\(tag)/SteamPhoneOS-arm64.qcow2")!
+        startDownload(url: url)
+        pendingUpdateTag = tag
     }
 
     // MARK: - Download & install
 
-    func startDownload() {
+    func startDownload(url: URL? = nil) {
         guard !downloader.isRunning else { return }
         if hasStagedImage {
             try? FileManager.default.removeItem(at: downloadDestination)
         }
-        downloader.start(from: DroidDeckBuildConfig.imageDownloadURL)
+        downloader.start(from: url ?? DroidDeckBuildConfig.imageDownloadURL)
         phase = .downloading(progress: 0)
     }
 
@@ -271,6 +335,12 @@ final class SteamPhoneOSManager: ObservableObject {
                 try? FileManager.default.removeItem(at: downloadDestination)
             }
             phase = .ready
+            let installedTag = pendingUpdateTag ?? bundledInstallVersion
+            if let tag = installedTag {
+                UserDefaults.standard.set(tag, forKey: "InstalledImageVersion")
+                pendingUpdateTag = nil
+                imageUpdateTag = nil
+            }
         } catch {
             // Surface the failing sub-step: Foundation's KVO/Combine failures
             // report only generic text via localizedDescription.

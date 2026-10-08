@@ -37,6 +37,25 @@ struct DroidDeckHomeView: View {
                 VStack(spacing: 24) {
                     header
                     droidDeckOSCard
+                    if let tag = manager.imageUpdateTag {
+                        Button {
+                            manager.updateToTag(tag)
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .foregroundColor(.cyan)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("SteamPhoneOS update available").font(.headline)
+                                    Text("Tap to download and reinstall (VM state is reset)").font(.subheadline).foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: 20).fill(Color.cardBackground))
+                            .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.cyan.opacity(0.4)))
+                        }
+                        .buttonStyle(.plain)
+                    }
                     streamingCard
                     if !DroidDeckHardware.isDeviceSupported {
                         unsupportedWarning
