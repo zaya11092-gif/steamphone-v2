@@ -19,6 +19,31 @@
 import Foundation
 import Combine
 
+extension DroidDeckOSManager {
+    /// Assembles the .utm bundle by hand (config.plist + qcow2 in Data/) and
+    /// imports it -- bypassing data.create and its qemu-helper extension.
+    fileprivate func manuallyAssembleBundle(from sourceURL: URL,
+                                            config: UTMQemuConfiguration,
+                                            into data: UTMData) async throws {
+        let fm = FileManager.default
+        let docs = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let bundle = docs.appendingPathComponent("SteamPhoneOS.utm", isDirectory: true)
+        try? fm.removeItem(at: bundle)
+        try fm.createDirectory(at: bundle.appendingPathComponent("Data"), withIntermediateDirectories: true)
+        let imageName = sourceURL.lastPathComponent
+        let destImage = bundle.appendingPathComponent("Data").appendingPathComponent(imageName)
+        try fm.copyItem(at: sourceURL, to: destImage)
+        if !config.drives.isEmpty {
+            config.drives[0].imageURL = destImage
+        }
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        let configData = try encoder.encode(config)
+        try configData.write(to: bundle.appendingPathComponent("config.plist"))
+        try await data.importNewUTM(from: bundle)
+    }
+}
+
 enum DroidDeckError: LocalizedError {
     case imageMissing
     case installInFlight
@@ -346,7 +371,15 @@ final class SteamPhoneOSManager: ObservableObject {
                 try? FileManager.default.removeItem(at: staleBundle)
             }
             let config = DroidDeckVMBuilder.makeConfiguration(imageURL: sourceURL)
-            _ = try await data.create(config: config)
+            do {
+                _ = try await data.create(config: config)
+            } catch let ns as NSError where ns.domain == "com.apple.extensionKit.errorDomain" {
+                // iOS 26 creates the VM disk via the qemu-helper App Extension;
+                // on some devices ExtensionKit fails to launch it. Assemble the
+                // .utm bundle manually instead: our image is already final qcow2
+                // and needs no qemu-img processing.
+                try await manuallyAssembleBundle(from: sourceURL, config: config, into: data)
+            }
             // The image was copied into the .utm bundle; drop the staged copy.
             if sourceURL == downloadDestination {
                 try? FileManager.default.removeItem(at: downloadDestination)
