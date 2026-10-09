@@ -74,6 +74,14 @@ enum DroidDeckVMBuilder {
 
         // Boot drive with the downloaded image.
         var drive = UTMQemuConfigurationDrive(forArchitecture: .aarch64, target: QEMUTarget_aarch64.virt)
+        // The image ships as a finished qcow2: install must be a plain file
+        // copy. Leaving isRawImage false makes UTM re-convert it with
+        // qemu-img in the QEMUHelper app extension, which aborts the whole
+        // install when ExtensionKit fails to launch that extension
+        // (com.apple.extensionKit.errorDomain code 19, "Failed to add
+        // observer"). QEMU reads the real format from the file header, so
+        // the flag only steers the copy step.
+        drive.isRawImage = true
         drive.imageURL = imageURL
         config.drives.append(drive)
 
