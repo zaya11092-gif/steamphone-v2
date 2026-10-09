@@ -21,11 +21,14 @@ import Combine
 
 enum DroidDeckError: LocalizedError {
     case imageMissing
+    case installInFlight
 
     var errorDescription: String? {
         switch self {
         case .imageMissing:
             return "No SteamPhoneOS image found. Download it first or import one from Files."
+        case .installInFlight:
+            return "An install is already running."
         }
     }
 }
@@ -307,7 +310,14 @@ final class SteamPhoneOSManager: ObservableObject {
 
     /// Imports a local qcow2 into a fresh SteamPhoneOS VM. Used both after the
     /// download finishes and by the Files-app import path.
+    private var installInFlight = false
+
     func installImage(at url: URL?, into data: UTMData) async throws {
+        guard !installInFlight else {
+            throw DroidDeckError.installInFlight
+        }
+        installInFlight = true
+        defer { installInFlight = false }
         let sourceURL: URL
         if let url, url.isFileURL {
             sourceURL = url
@@ -345,7 +355,9 @@ final class SteamPhoneOSManager: ObservableObject {
             // Surface the failing sub-step: Foundation's KVO/Combine failures
             // report only generic text via localizedDescription.
             let ns = error as NSError
-            let detail = "step=VM-create/domain=\(ns.domain) code=\(ns.code) user-info=\(ns.userInfo)"
+            let detail = "step=VM-create/domain=\(ns.domain) code=\(ns.code)
+userInfo=\(ns.userInfo)
+underlying=\(ns.userInfo[NSUnderlyingErrorKey] as? NSError ?? nil as NSError?)"
             phase = .failed("Install failed: \(error.localizedDescription) [\(detail)]")
             throw error
         }
