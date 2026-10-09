@@ -338,6 +338,13 @@ final class SteamPhoneOSManager: ObservableObject {
             try? await data.delete(vm: oldVM)
         }
         do {
+            // Remove any partial bundle left by a previously failed create:
+            // a half-written SteamPhoneOS.utm breaks every subsequent create.
+            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let staleBundle = docs.appendingPathComponent("SteamPhoneOS.utm", isDirectory: true)
+            if FileManager.default.fileExists(atPath: staleBundle.path) {
+                try? FileManager.default.removeItem(at: staleBundle)
+            }
             let config = DroidDeckVMBuilder.makeConfiguration(imageURL: sourceURL)
             _ = try await data.create(config: config)
             // The image was copied into the .utm bundle; drop the staged copy.
