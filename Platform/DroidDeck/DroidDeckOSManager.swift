@@ -355,9 +355,8 @@ final class SteamPhoneOSManager: ObservableObject {
             // Surface the failing sub-step: Foundation's KVO/Combine failures
             // report only generic text via localizedDescription.
             let ns = error as NSError
-            let detail = "step=VM-create/domain=\(ns.domain) code=\(ns.code)
-userInfo=\(ns.userInfo)
-underlying=\(ns.userInfo[NSUnderlyingErrorKey] as? NSError ?? nil as NSError?)"
+            let underlying = ns.userInfo[NSUnderlyingErrorKey] as? NSError
+            let detail = "step=VM-create domain=\(ns.domain) code=\(ns.code) underlying=\(underlying?.localizedDescription ?? "none")"
             phase = .failed("Install failed: \(error.localizedDescription) [\(detail)]")
             throw error
         }
